@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Billing — Admin | Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .invoice-print { display: none; }
+    @media print {
+      .admin-layout, .admin-topbar, .sidebar, .topbar-right { display: none !important; }
+      .invoice-print { display: block !important; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-cow"></i></div><div class="sidebar-brand">Jadhav<span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <a href="milk-records.html" class="sidebar-link"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link"><i class="fas fa-truck"></i> Deliveries</a>
+      <a href="billing.html" class="sidebar-link active"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-user-avatar" id="adminInitial">A</div><div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">admin</div></div></div></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left"><button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button><div class="topbar-title">Billing & Invoices</div></div>
+      <div class="topbar-right"><button class="btn btn-primary btn-sm" onclick="Utils.openModal('genInvoiceModal')"><i class="fas fa-plus"></i> Generate Invoice</button></div>
+    </div>
+    <div class="admin-content">
+      <div class="data-card">
+        <div class="data-card-header"><span class="data-card-title">All Invoices</span></div>
+        <div id="invoicesTable"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Print Invoice Area -->
+<div class="invoice-print" id="invoicePrintArea"></div>
+
+<!-- Generate Invoice Modal -->
+<div class="modal-backdrop" id="genInvoiceModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><div class="modal-title">Generate Monthly Invoice</div><button class="modal-close" onclick="Utils.closeModal('genInvoiceModal')">&times;</button></div>
+    <div class="form-group"><label class="form-label">Customer *</label><select id="invCustomer" class="form-control"><option value="">Select customer...</option></select></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Period From *</label><input type="date" id="invFrom" class="form-control" required></div>
+      <div class="form-group"><label class="form-label">Period To *</label><input type="date" id="invTo" class="form-control" required></div>
+    </div>
+    <div id="invItemsContainer">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem"><label class="form-label" style="margin-bottom:0">Invoice Items</label><button class="btn btn-ghost btn-sm" onclick="addInvItem()"><i class="fas fa-plus"></i> Add Item</button></div>
+      <div id="invItems"></div>
+    </div>
+    <div style="margin-top:0.75rem;text-align:right;font-weight:700">Total: <span id="invTotal">₹0</span></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('genInvoiceModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="generateInvoice()"><i class="fas fa-file-invoice"></i> Generate</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Invoice Modal -->
+<div class="modal-backdrop" id="viewInvModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header"><div class="modal-title">Invoice</div>
+      <div style="display:flex;gap:0.5rem">
+        <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+        <button class="modal-close" onclick="Utils.closeModal('viewInvModal')">&times;</button>
+      </div>
+    </div>
+    <div id="invDetail"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('viewInvModal')">Close</button>
+      <button class="btn btn-success" id="markPaidBtn" onclick="markPaid()"><i class="fas fa-check"></i> Mark as Paid</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) { document.getElementById('adminName').textContent = user.name; document.getElementById('adminRole').textContent = user.role; document.getElementById('adminInitial').textContent = user.name[0]; }
+  let viewingInvId = null;
+
+  async function loadCustomersDropdown() {
+    try {
+      const data = await api.get('/customers');
+      data.customers.forEach(c => document.getElementById('invCustomer').innerHTML += `<option value="${c.id}">${c.name} (${c.phone||c.email||''})</option>`);
+    } catch(e) {}
+  }
+
+  async function loadInvoices() {
+    try {
+      const data = await api.get('/billing');
+      if (!data.invoices.length) {
+        document.getElementById('invoicesTable').innerHTML = '<div class="empty-state" style="padding:3rem"><i class="fas fa-file-invoice"></i><h3>No invoices yet</h3></div>';
+        return;
+      }
+      document.getElementById('invoicesTable').innerHTML = `
+        <div class="table-wrapper"><table><thead><tr><th>Invoice #</th><th>Customer</th><th>Period</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${data.invoices.map(inv => `<tr>
+          <td><strong style="color:var(--primary)">${inv.invoice_number}</strong></td>
+          <td><div style="font-weight:600;font-size:0.875rem">${inv.customer_name}</div><div style="font-size:0.75rem;color:var(--text-muted)">${inv.phone||''}</div></td>
+          <td style="font-size:0.8rem">${Utils.formatDate(inv.period_from)} – ${Utils.formatDate(inv.period_to)}</td>
+          <td><strong>${Utils.formatCurrency(inv.total_amount)}</strong></td>
+          <td style="font-size:0.8rem;color:${inv.status==='overdue'?'#dc2626':'inherit'}">${Utils.formatDate(inv.due_date)}</td>
+          <td>${Utils.statusBadge(inv.status)}</td>
+          <td><div style="display:flex;gap:0.4rem">
+            <button class="btn btn-secondary btn-sm" onclick="viewInvoice(${inv.id})" title="View"><i class="fas fa-eye"></i></button>
+            ${inv.status !== 'paid' ? `<button class="btn btn-success btn-sm" onclick="markInvoicePaid(${inv.id})" title="Mark Paid"><i class="fas fa-check"></i></button>` : ''}
+          </div></td>
+        </tr>`).join('')}</tbody></table></div>`;
+    } catch(e) { document.getElementById('invoicesTable').innerHTML = `<div class="alert alert-warning" style="margin:1rem">${e.message}</div>`; }
+  }
+
+  function addInvItem() {
+    const id = Date.now();
+    const div = document.createElement('div');
+    div.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:0.5rem;margin-bottom:0.5rem;align-items:center';
+    div.innerHTML = `<input type="text" class="form-control" placeholder="Description" oninput="recalcTotal()">
+      <input type="number" class="form-control" placeholder="Qty" min="0" step="0.5" oninput="recalcTotal()">
+      <input type="number" class="form-control" placeholder="Rate (₹)" min="0" step="0.01" oninput="recalcTotal()">
+      <button onclick="this.parentElement.remove();recalcTotal()" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:1rem"><i class="fas fa-times"></i></button>`;
+    document.getElementById('invItems').appendChild(div);
+  }
+
+  function recalcTotal() {
+    const rows = document.getElementById('invItems').querySelectorAll('div');
+    let total = 0;
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const qty = parseFloat(inputs[1]?.value) || 0;
+      const rate = parseFloat(inputs[2]?.value) || 0;
+      total += qty * rate;
+    });
+    document.getElementById('invTotal').textContent = Utils.formatCurrency(total);
+  }
+
+  async function generateInvoice() {
+    const custId = document.getElementById('invCustomer').value;
+    const from = document.getElementById('invFrom').value;
+    const to = document.getElementById('invTo').value;
+    if (!custId || !from || !to) { Toast.warning('Please fill in all required fields'); return; }
+    const itemRows = document.getElementById('invItems').querySelectorAll('div');
+    const items = [];
+    itemRows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const desc = inputs[0]?.value;
+      const qty = parseFloat(inputs[1]?.value) || 0;
+      const rate = parseFloat(inputs[2]?.value) || 0;
+      if (desc && qty > 0 && rate > 0) items.push({ description: desc, quantity: qty, unit_price: rate });
+    });
+    if (!items.length) { Toast.warning('Add at least one invoice item'); return; }
+    try {
+      await api.post('/billing/generate', { customer_id: custId, period_from: from, period_to: to, items });
+      Utils.closeModal('genInvoiceModal');
+      Toast.success('Invoice generated!');
+      loadInvoices();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  async function viewInvoice(id) {
+    viewingInvId = id;
+    try {
+      const data = await api.get(`/billing/${id}`);
+      const inv = data.invoice;
+      const invHtml = `<div style="font-family:var(--font-body)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem">
+          <div><div style="font-size:1.25rem;font-weight:700;color:var(--primary-dark)">Jadhav Dairy</div><div style="font-size:0.8rem;color:var(--text-muted)">Farm Lane, Pune, Maharashtra | +91 98765 43210</div></div>
+          <div style="text-align:right"><div style="font-size:0.75rem;color:var(--text-muted)">Invoice</div><div style="font-size:1.2rem;font-weight:700;color:var(--primary)">${inv.invoice_number}</div><div style="font-size:0.8rem;color:var(--text-muted)">Due: ${Utils.formatDate(inv.due_date)}</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;background:var(--cream);padding:1rem;border-radius:8px">
+          <div><div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase">Bill To</div><div style="font-weight:700">${inv.customer_name}</div><div style="font-size:0.875rem">${inv.phone||''}${inv.email?'\n'+inv.email:''}</div></div>
+          <div style="text-align:right"><div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase">Period</div><div style="font-weight:600">${Utils.formatDate(inv.period_from)} – ${Utils.formatDate(inv.period_to)}</div><div style="margin-top:0.25rem">${Utils.statusBadge(inv.status)}</div></div>
+        </div>
+        <div class="table-wrapper" style="margin-bottom:1rem"><table><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Subtotal</th></tr></thead>
+        <tbody>${(inv.items||[]).map(i => `<tr><td>${i.description}</td><td>${i.quantity}</td><td>${Utils.formatCurrency(i.unit_price)}</td><td>${Utils.formatCurrency(i.subtotal)}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700;padding:0.75rem 1rem;border-top:2px solid var(--border)">Grand Total:</td><td style="font-weight:800;font-size:1.1rem;color:var(--primary);border-top:2px solid var(--border)">${Utils.formatCurrency(inv.total_amount)}</td></tr></tfoot>
+        </table></div>
+        <p style="font-size:0.8rem;color:var(--text-muted);text-align:center">Thank you for your business! This is a computer-generated invoice.</p>`;
+      document.getElementById('invDetail').innerHTML = invHtml;
+      document.getElementById('invoicePrintArea').innerHTML = invHtml;
+      document.getElementById('markPaidBtn').style.display = inv.status === 'paid' ? 'none' : 'inline-flex';
+      Utils.openModal('viewInvModal');
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  async function markPaid() {
+    if (!viewingInvId) return;
+    try { await api.put(`/billing/${viewingInvId}/pay`, { payment_method: 'cash' }); Toast.success('Invoice marked as paid!'); Utils.closeModal('viewInvModal'); loadInvoices(); } catch(e) { Toast.error(e.message); }
+  }
+
+  async function markInvoicePaid(id) {
+    try { await api.put(`/billing/${id}/pay`, { payment_method: 'cash' }); Toast.success('Invoice marked as paid!'); loadInvoices(); } catch(e) { Toast.error(e.message); }
+  }
+
+  // Initialize default period (current month)
+  const now = new Date();
+  document.getElementById('invFrom').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  document.getElementById('invTo').value = now.toISOString().slice(0,10);
+  addInvItem();
+
+  loadCustomersDropdown();
+  loadInvoices();
+</script>
+</body>
+</html>

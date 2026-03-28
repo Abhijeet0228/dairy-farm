@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products — Admin | Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-cow"></i></div><div class="sidebar-brand">Jadhav<span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link active"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <div class="nav-section-label">Farm</div>
+      <a href="milk-records.html" class="sidebar-link"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link"><i class="fas fa-truck"></i> Deliveries</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="billing.html" class="sidebar-link"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-user-avatar" id="adminInitial">A</div><div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">Admin</div></div></div></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+        <div class="topbar-title">Product Management</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <div class="data-card">
+        <div class="data-card-header">
+          <span class="data-card-title">All Products</span>
+          <div class="data-card-actions">
+            <div class="search-bar"><i class="fas fa-search"></i><input type="text" class="form-control" id="productSearch" placeholder="Search products..." oninput="filterProducts()" style="padding-left:2.75rem;width:220px"></div>
+            <select class="form-control" id="catFilter" onchange="filterProducts()" style="width:160px">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+        </div>
+        <div id="productsTableContainer"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Product Modal -->
+<div class="modal-backdrop" id="productModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Product</div>
+      <button class="modal-close" onclick="Utils.closeModal('productModal')">&times;</button>
+    </div>
+    <form id="productForm" enctype="multipart/form-data">
+      <input type="hidden" id="productId">
+      <input type="hidden" id="existingImage">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Product Name *</label><input type="text" id="pName" class="form-control" required></div>
+        <div class="form-group"><label class="form-label">Category *</label><select id="pCategory" class="form-control" required><option value="">Select...</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea id="pDesc" class="form-control" rows="3"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Price (₹) *</label><input type="number" id="pPrice" class="form-control" min="0" step="0.01" required></div>
+        <div class="form-group"><label class="form-label">Unit</label><select id="pUnit" class="form-control"><option>litre</option><option>500ml</option><option>200g</option><option>500g</option><option>kg</option><option>unit</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Stock Quantity *</label><input type="number" id="pStock" class="form-control" min="0" required></div>
+        <div class="form-group"><label class="form-label">Status</label><select id="pStatus" class="form-control"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Product Image</label><input type="file" id="pImage" class="form-control" accept="image/*"><div id="imagePreview" style="margin-top:0.5rem"></div></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="Utils.closeModal('productModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveProductBtn"><i class="fas fa-save"></i> Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title">Delete Product</div><button class="modal-close" onclick="Utils.closeModal('deleteModal')">&times;</button></div>
+    <p>Are you sure you want to deactivate <strong id="deleteProductName"></strong>? This will hide it from the store.</p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('deleteModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()"><i class="fas fa-trash"></i> Deactivate</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) { document.getElementById('adminName').textContent = user.name; document.getElementById('adminRole').textContent = user.role; document.getElementById('adminInitial').textContent = user.name[0]; }
+  let allProducts = [], categories = [], deleteId = null, editId = null;
+
+  async function loadData() {
+    try {
+      const [pData, cData] = await Promise.all([api.get('/products?limit=200'), api.get('/categories')]);
+      allProducts = pData.products;
+      categories = cData.categories;
+      const catFilter = document.getElementById('catFilter');
+      const pCategory = document.getElementById('pCategory');
+      categories.forEach(c => {
+        catFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        pCategory.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+      });
+      renderTable(allProducts);
+    } catch(e) {
+      document.getElementById('productsTableContainer').innerHTML = `<div class="alert alert-warning" style="margin:1rem"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+  }
+
+  function filterProducts() {
+    const search = document.getElementById('productSearch').value.toLowerCase();
+    const cat = document.getElementById('catFilter').value;
+    const filtered = allProducts.filter(p =>
+      (!search || p.name.toLowerCase().includes(search)) &&
+      (!cat || p.category_id == cat)
+    );
+    renderTable(filtered);
+  }
+
+  function renderTable(products) {
+    if (products.length === 0) {
+      document.getElementById('productsTableContainer').innerHTML = '<div class="empty-state" style="padding:3rem"><i class="fas fa-box-open"></i><h3>No products found</h3></div>';
+      return;
+    }
+    const emojis = {1:'🥛',2:'🍶',3:'🥣',4:'🧈',5:'🥐',6:'🧀',7:'🥤',8:'🍦'};
+    document.getElementById('productsTableContainer').innerHTML = `
+      <div class="table-wrapper">
+        <table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Unit</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${products.map(p => `
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:0.75rem">
+              <div style="width:40px;height:40px;border-radius:8px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${emojis[p.category_id]||'🥛'}</div>
+              <div><div style="font-weight:600;font-size:0.9rem">${p.name}</div><div style="font-size:0.75rem;color:var(--text-muted)">${(p.description||'').slice(0,40)}...</div></div>
+            </div></td>
+            <td>${p.category_name||'—'}</td>
+            <td><strong>${Utils.formatCurrency(p.price)}</strong></td>
+            <td><span style="color:${p.stock_quantity <= 10 ? '#dc2626' : '#16a34a'};font-weight:600">${p.stock_quantity}</span></td>
+            <td>${p.unit}</td>
+            <td>${p.is_active ? '<span class="badge badge-success"><i class="fas fa-circle" style="font-size:.4rem"></i> Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td>
+            <td><div style="display:flex;gap:0.5rem">
+              <button class="btn btn-secondary btn-sm" onclick='editProduct(${JSON.stringify(p).replace(/'/g,"\\'")})'><i class="fas fa-edit"></i></button>
+              <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id},'${p.name}')"><i class="fas fa-trash"></i></button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody></table>
+      </div>`;
+  }
+
+  function openProductModal(clear = true) {
+    if (clear) {
+      editId = null;
+      document.getElementById('modalTitle').textContent = 'Add Product';
+      document.getElementById('productForm').reset();
+      document.getElementById('productId').value = '';
+      document.getElementById('imagePreview').innerHTML = '';
+    }
+    Utils.openModal('productModal');
+  }
+
+  function editProduct(p) {
+    editId = p.id;
+    document.getElementById('modalTitle').textContent = 'Edit Product';
+    document.getElementById('productId').value = p.id;
+    document.getElementById('pName').value = p.name;
+    document.getElementById('pDesc').value = p.description || '';
+    document.getElementById('pPrice').value = p.price;
+    document.getElementById('pStock').value = p.stock_quantity;
+    document.getElementById('pUnit').value = p.unit;
+    document.getElementById('pStatus').value = p.is_active;
+    document.getElementById('existingImage').value = p.image_url || '';
+    document.getElementById('pCategory').value = p.category_id || '';
+    document.getElementById('imagePreview').innerHTML = p.image_url ? `<img src="${p.image_url}" style="height:80px;border-radius:8px">` : '';
+    Utils.openModal('productModal');
+  }
+
+  function deleteProduct(id, name) {
+    deleteId = id;
+    document.getElementById('deleteProductName').textContent = name;
+    Utils.openModal('deleteModal');
+  }
+
+  async function confirmDelete() {
+    try {
+      await api.delete(`/products/${deleteId}`);
+      Utils.closeModal('deleteModal');
+      Toast.success('Product deactivated.');
+      loadData();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  document.getElementById('productForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const fd = new FormData();
+    fd.append('name', document.getElementById('pName').value);
+    fd.append('description', document.getElementById('pDesc').value);
+    fd.append('price', document.getElementById('pPrice').value);
+    fd.append('category_id', document.getElementById('pCategory').value);
+    fd.append('stock_quantity', document.getElementById('pStock').value);
+    fd.append('unit', document.getElementById('pUnit').value);
+    fd.append('is_active', document.getElementById('pStatus').value);
+    fd.append('existing_image', document.getElementById('existingImage').value);
+    const imgFile = document.getElementById('pImage').files[0];
+    if (imgFile) fd.append('image', imgFile);
+    try {
+      if (editId) await api.putForm(`/products/${editId}`, fd);
+      else await api.postForm('/products', fd);
+      Utils.closeModal('productModal');
+      Toast.success(editId ? 'Product updated!' : 'Product created!');
+      loadData();
+    } catch(e) { Toast.error(e.message); }
+  });
+
+  document.getElementById('pImage').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = ev => document.getElementById('imagePreview').innerHTML = `<img src="${ev.target.result}" style="height:80px;border-radius:8px;margin-top:0.3rem">`;
+      reader.readAsDataURL(file);
+    }
+  });
+
+  loadData();
+</script>
+</body>
+</html>

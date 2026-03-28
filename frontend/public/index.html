@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadhav Dairy — Fresh from Farm to Your Door</title>
+  <meta name="description"
+    content="Jadhav Dairy delivers fresh milk, ghee, paneer, curd and dairy products daily. Pure, natural, farm-fresh goodness.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+
+    .cat-card {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .cat-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+    }
+
+    .cat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .cat-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .cat-count {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .why-item {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+    }
+
+    .why-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(45, 106, 79, 0.1), rgba(116, 198, 157, 0.15));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 0.25rem;
+    }
+
+    .cta-section {
+      background: linear-gradient(135deg, var(--cream), var(--cream-dark));
+      padding: 5rem 0;
+      text-align: center;
+    }
+
+    .products-preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .product-card-wrapper {
+      position: relative;
+    }
+
+    @media(max-width:900px) {
+      .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media(max-width:480px) {
+      .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <div class="brand-logo"><i class="fas fa-cow"></i></div>
+        <div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div>
+      </a>
+      <div class="navbar-nav" id="navMenu">
+        <a href="index.html" class="nav-link active">Home</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="products.html" class="nav-link">Products</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="../admin/dashboard.html" class="nav-link" id="adminLink" style="display:none">Admin</a>
+        <a href="../customer/dashboard.html" class="nav-link" id="customerLink" style="display:none">My Account</a>
+      </div>
+      <div class="navbar-actions">
+        <button class="cart-btn" onclick="window.location.href='cart.html'" title="Cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <a href="login.html" class="btn btn-secondary btn-sm" id="loginBtn">Login</a>
+        <a href="register.html" class="btn btn-primary btn-sm" id="registerBtn">Sign Up</a>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn" style="display:none" onclick="Auth.logout()">Logout</button>
+        <button class="hamburger" id="hamburger" onclick="document.getElementById('navMenu').classList.toggle('open')">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="grid grid-2" style="align-items:center;gap:3rem">
+        <div class="hero-content">
+          <div class="hero-badge"><i class="fas fa-leaf"></i> 100% Natural & Pure Products</div>
+          <h1>Fresh Dairy,<br>Delivered Daily to Your Doorstep</h1>
+          <p>Experience farm-fresh milk, ghee, paneer, curd, and more — sourced directly from our healthy, happy cows
+            and buffaloes every morning.</p>
+          <div class="hero-btns">
+            <a href="products.html" class="btn btn-accent btn-lg"><i class="fas fa-shopping-basket"></i> Shop Now</a>
+            <a href="about.html" class="btn btn-outline btn-lg">Our Story</a>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-num">500+</div>
+              <div class="hero-stat-label">Happy Customers</div>
+            </div>
+            <div>
+              <div class="hero-stat-num">50+</div>
+              <div class="hero-stat-label">Healthy Cows</div>
+            </div>
+            <div>
+              <div class="hero-stat-num">15+</div>
+              <div class="hero-stat-label">Years of Trust</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-image">
+          <div class="hero-img-card">🐄</div>
+          <div class="floating-card floating-card-1">
+            <div style="font-size:1.5rem">🥛</div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem;color:var(--text)">Fresh Milk</div>
+              <div style="font-size:0.75rem;color:var(--primary)">Delivered Daily</div>
+            </div>
+          </div>
+          <div class="floating-card floating-card-2">
+            <div style="font-size:1.5rem">⭐</div>
+            <div>
+              <div style="font-weight:700;font-size:0.9rem;color:var(--text)">4.9/5</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">Customer Rating</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Why Choose Us</span>
+        <h2>The Jadhav Promise</h2>
+        <p>We believe in delivering not just dairy products, but a commitment to purity, freshness, and health.</p>
+      </div>
+      <div class="grid grid-4" id="featuresGrid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-leaf"></i></div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.5rem">100% Natural</h3>
+          <p style="font-size:0.875rem">No artificial colours, flavours or preservatives. Just pure goodness.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-truck"></i></div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.5rem">Daily Delivery</h3>
+          <p style="font-size:0.875rem">Fresh products at your doorstep every morning before 7 AM.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-shield-halved"></i></div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.5rem">Quality Assured</h3>
+          <p style="font-size:0.875rem">Every batch tested for purity. FSSAI certified & compliant.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-indian-rupee-sign"></i></div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.5rem">Fair Pricing</h3>
+          <p style="font-size:0.875rem">Farm-direct pricing means you pay less, we earn fair wages.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Categories</span>
+        <h2>Explore Our Dairy Range</h2>
+        <p>From golden ghee to creamy paneer — everything your kitchen needs, fresh every day.</p>
+      </div>
+      <div class="categories-grid" id="categoriesGrid">
+        <div class="cat-card" onclick="window.location.href='products.html?cat=1'">
+          <div class="cat-icon">🥛</div>
+          <div class="cat-name">Cow Milk</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+        <div class="cat-card" onclick="window.location.href='products.html?cat=2'">
+          <div class="cat-icon">🍶</div>
+          <div class="cat-name">Buffalo Milk</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+        <div class="cat-card" onclick="window.location.href='products.html?cat=3'">
+          <div class="cat-icon">🥣</div>
+          <div class="cat-name">Curd & Yogurt</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+        <div class="cat-card" onclick="window.location.href='products.html?cat=4'">
+          <div class="cat-icon">🧈</div>
+          <div class="cat-name">Ghee</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+        <div class="cat-card" onclick="window.location.href='products.html?cat=5'">
+          <div class="cat-icon">🥐</div>
+          <div class="cat-name">Butter</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+        <div class="cat-card" onclick="window.location.href='products.html?cat=6'">
+          <div class="cat-icon">🧀</div>
+          <div class="cat-name">Paneer</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+        <div class="cat-card" onclick="window.location.href='products.html?cat=7'">
+          <div class="cat-icon">🥤</div>
+          <div class="cat-name">Buttermilk</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+        <div class="cat-card" onclick="window.location.href='products.html?cat=8'">
+          <div class="cat-icon">🍦</div>
+          <div class="cat-name">Other Products</div>
+          <div class="cat-count">2 Products</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED PRODUCTS -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Featured Products</span>
+        <h2>Our Best Sellers</h2>
+        <p>Hand-picked favourites loved by our loyal customers week after week.</p>
+      </div>
+      <div class="products-preview" id="featuredProducts">
+        <div class="loader">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:2.5rem">
+        <a href="products.html" class="btn btn-primary"><i class="fas fa-th-large"></i> View All Products</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Reviews</span>
+        <h2>What Our Customers Say</h2>
+      </div>
+      <div class="grid grid-3" id="testimonialGrid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Best quality milk I've ever had! Fresh every morning, love it. The ghee is
+            absolutely divine — just like what my grandmother used to make."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">R</div>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem">Rajesh Sharma</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">Daily Subscription Customer</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"The paneer is so soft and fresh — nothing like the supermarket stuff. My family
+            now refuses to go back to packaged dairy. Highly recommended!"</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">P</div>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem">Priya Patel</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">Regular Customer, FC Road</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★☆</div>
+          <p class="testimonial-text">"Delivery is always on time and packaging is clean. The curd is thick, creamy, and
+            our kids love it. Great business with honest pricing."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">S</div>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem">Sunita Kulkarni</div>
+              <div style="font-size:0.75rem;color:var(--text-muted)">Customer, Baner</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBSCRIBE CTA -->
+  <section class="cta-section">
+    <div class="container" style="max-width:680px">
+      <div style="font-size:3.5rem;margin-bottom:1rem">🥛</div>
+      <h2 style="margin-bottom:1rem">Subscribe for Daily Fresh Milk Delivery</h2>
+      <p style="font-size:1.05rem;color:var(--text-muted);margin-bottom:2rem">Never run out of fresh milk again. Set up
+        a subscription and get dairy delivered at your preferred time, every single day — with easy monthly billing.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <a href="register.html" class="btn btn-primary btn-lg"><i class="fas fa-bell"></i> Start Subscription</a>
+        <a href="about.html" class="btn btn-secondary btn-lg">Learn More</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="grid grid-4">
+        <div>
+          <div class="footer-brand">
+            <div class="brand-logo" style="margin-bottom:0.75rem"><i class="fas fa-cow"></i></div><span
+              class="brand-name">Jadhav Dairy</span>
+          </div>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.55);margin-bottom:1rem;line-height:1.7">Delivering pure,
+            natural dairy products from our family farm to your family table since 2009.</p>
+          <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+          </div>
+        </div>
+        <div>
+          <h4>Quick Links</h4>
+          <div class="footer-links">
+            <a href="index.html">Home</a><a href="about.html">About Us</a>
+            <a href="products.html">Products</a><a href="contact.html">Contact</a>
+          </div>
+        </div>
+        <div>
+          <h4>Products</h4>
+          <div class="footer-links">
+            <a href="products.html?cat=1">Cow Milk</a><a href="products.html?cat=2">Buffalo Milk</a>
+            <a href="products.html?cat=4">Pure Ghee</a><a href="products.html?cat=6">Fresh Paneer</a>
+            <a href="products.html?cat=3">Curd & Yogurt</a>
+          </div>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.6);margin-bottom:0.75rem"><i
+              class="fas fa-map-marker-alt" style="color:var(--secondary);margin-right:0.5rem"></i>Sangliwadi, Sangli,
+            Maharashtra</p>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.6);margin-bottom:0.75rem"><i class="fas fa-phone"
+              style="color:var(--secondary);margin-right:0.5rem"></i>+91 9421127449</p>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.6)"><i class="fas fa-envelope"
+              style="color:var(--secondary);margin-right:0.5rem"></i>info@jadhavdairy.com</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 jadhavDairy Farm. All rights reserved.</p>
+        <p style="font-size:0.8rem;color:rgba(255,255,255,0.4)">Made with ❤️ for farmers and families</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/api.js"></script>
+  <script>
+    // Nav auth state
+    const user = api.getUser();
+    if (user) {
+      document.getElementById('loginBtn').style.display = 'none';
+      document.getElementById('registerBtn').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'inline-flex';
+      if (user.role === 'admin' || user.role === 'staff') document.getElementById('adminLink').style.display = 'block';
+      else document.getElementById('customerLink').style.display = 'block';
+    }
+
+    // Cart count
+    const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+    document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.quantity, 0);
+
+    // Featured products
+    async function loadFeatured() {
+      try {
+        const data = await api.get('/products?limit=4&sort=name');
+        const container = document.getElementById('featuredProducts');
+        container.innerHTML = '';
+        if (!data.products || data.products.length === 0) {
+          container.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><h3>No products yet</h3></div>';
+          return;
+        }
+        data.products.forEach(p => {
+          const emoji = { 1: '🥛', 2: '🍶', 3: '🥣', 4: '🧈', 5: '🥐', 6: '🧀', 7: '🥤', 8: '🍦' }[p.category_id] || '🥛';
+          container.innerHTML += `
+          <div class="card product-card" onclick="window.location.href='product-detail.html?id=${p.id}'">
+            <div class="product-img" style="position:relative">
+              ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" style="width:100%;height:220px;object-fit:cover">` : `<div style="font-size:4rem;width:100%;height:220px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--cream),var(--border-light))">${emoji}</div>`}
+            </div>
+            <div class="card-body">
+              <div class="product-category">${p.category_name}</div>
+              <div class="product-name">${p.name}</div>
+              <div class="product-desc">${p.description || ''}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem">
+                <div class="product-price">${Utils.formatCurrency(p.price)} <span>/ ${p.unit}</span></div>
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();addToCart(${JSON.stringify(p).replace(/"/g, '&quot;')})"><i class="fas fa-plus"></i> Add</button>
+              </div>
+            </div>
+          </div>`;
+        });
+      } catch (e) {
+        document.getElementById('featuredProducts').innerHTML = `<div style="grid-column:1/-1"><div class="alert alert-info"><i class="fas fa-info-circle"></i> Start the backend server to see products (npm run dev in /backend)</div></div>`;
+      }
+    }
+    function addToCart(p) {
+      const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+      const idx = cart.findIndex(i => i.id === p.id);
+      if (idx >= 0) cart[idx].quantity++; else cart.push({ ...p, quantity: 1 });
+      localStorage.setItem('df_cart', JSON.stringify(cart));
+      document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.quantity, 0);
+      Toast.success(`${p.name} added to cart!`);
+    }
+    loadFeatured();
+  </script>
+</body>
+
+</html>

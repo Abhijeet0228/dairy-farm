@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; padding: 2.5rem 0; }
+    .payment-option { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; margin-bottom: 0.75rem; transition: var(--transition); }
+    .payment-option:hover, .payment-option.selected { border-color: var(--primary); background: var(--border-light); }
+    .payment-option input { accent-color: var(--primary); }
+    .order-mini-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border-light); font-size: 0.875rem; }
+    .order-mini-item:last-child { border-bottom: none; }
+    .success-modal { text-align: center; padding: 1rem; }
+    .success-icon { width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 2.5rem; color: #16a34a; }
+    @media(max-width:768px) { .checkout-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-brand"><div class="brand-logo"><i class="fas fa-cow"></i></div><div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div></a>
+    <div class="navbar-actions">
+      <button class="cart-btn" onclick="window.location.href='cart.html'"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header"><div class="container">
+  <div class="breadcrumb"><a href="index.html">Home</a><span>/</span><a href="cart.html">Cart</a><span>/</span><span>Checkout</span></div>
+  <h1>Checkout</h1>
+</div></div>
+
+<div class="container">
+  <div class="checkout-layout">
+    <div>
+      <!-- Delivery Details -->
+      <div class="card" style="margin-bottom:1.5rem"><div class="card-header"><i class="fas fa-map-marker-alt" style="color:var(--primary);margin-right:0.5rem"></i>Delivery Details</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="fullName" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Phone *</label><input type="tel" id="phone" class="form-control" required></div>
+        </div>
+        <div class="form-group"><label class="form-label">Delivery Address *</label><textarea id="deliveryAddress" class="form-control" rows="3" required></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">City</label><input type="text" id="city" class="form-control" value="Pune"></div>
+          <div class="form-group"><label class="form-label">PIN Code</label><input type="text" id="pinCode" class="form-control"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Delivery Notes</label><input type="text" id="deliveryNotes" class="form-control" placeholder="Gate code, landmark, leave at door..."></div>
+      </div></div>
+
+      <!-- Payment Method -->
+      <div class="card"><div class="card-header"><i class="fas fa-credit-card" style="color:var(--primary);margin-right:0.5rem"></i>Payment Method</div>
+      <div class="card-body">
+        <label class="payment-option selected" id="opt-cod">
+          <input type="radio" name="payment" value="cod" checked onchange="selectPayment(this)">
+          <i class="fas fa-money-bill-wave" style="color:#16a34a;font-size:1.25rem"></i>
+          <div><div style="font-weight:600">Cash on Delivery</div><div style="font-size:0.8rem;color:var(--text-muted)">Pay when your order arrives</div></div>
+        </label>
+        <label class="payment-option" id="opt-upi">
+          <input type="radio" name="payment" value="upi" onchange="selectPayment(this)">
+          <i class="fas fa-mobile-alt" style="color:#7c3aed;font-size:1.25rem"></i>
+          <div><div style="font-weight:600">UPI Payment</div><div style="font-size:0.8rem;color:var(--text-muted)">Pay via any UPI app</div></div>
+        </label>
+        <label class="payment-option" id="opt-online">
+          <input type="radio" name="payment" value="online" onchange="selectPayment(this)">
+          <i class="fas fa-credit-card" style="color:#2563eb;font-size:1.25rem"></i>
+          <div><div style="font-weight:600">Online Payment</div><div style="font-size:0.8rem;color:var(--text-muted)">Credit/Debit card, Net Banking</div></div>
+        </label>
+      </div></div>
+    </div>
+
+    <!-- Order Summary -->
+    <div>
+      <div class="card" style="position:sticky;top:90px">
+        <div class="card-header">Order Summary</div>
+        <div class="card-body">
+          <div id="orderItems"></div>
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border-light)">
+            <div class="summary-row" style="display:flex;justify-content:space-between;font-size:0.875rem;padding:0.3rem 0"><span>Subtotal</span><span id="checkoutSubtotal">₹0</span></div>
+            <div class="summary-row" style="display:flex;justify-content:space-between;font-size:0.875rem;padding:0.3rem 0"><span>Delivery</span><span style="color:#16a34a">FREE</span></div>
+            <div class="summary-row" style="display:flex;justify-content:space-between;font-size:0.875rem;padding:0.3rem 0"><span>GST (5%)</span><span id="checkoutGst">₹0</span></div>
+            <div style="display:flex;justify-content:space-between;font-weight:700;font-size:1.15rem;border-top:1.5px solid var(--border);margin-top:0.5rem;padding-top:0.75rem">
+              <span>Total</span><span id="checkoutTotal" style="color:var(--primary)">₹0</span>
+            </div>
+          </div>
+          <button class="btn btn-accent btn-lg" style="width:100%;margin-top:1.25rem" onclick="placeOrder()" id="placeOrderBtn">
+            <span id="placeBtnText"><i class="fas fa-check-circle"></i> Place Order</span>
+            <span id="placeBtnLoading" style="display:none"><div class="spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,0.3);border-top-color:white"></div></span>
+          </button>
+          <p style="font-size:0.75rem;text-align:center;color:var(--text-light);margin-top:0.75rem"><i class="fas fa-lock"></i> Your data is secure & encrypted</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-backdrop" id="successModal">
+  <div class="modal">
+    <div class="success-modal">
+      <div class="success-icon"><i class="fas fa-check"></i></div>
+      <h2 style="margin-bottom:0.5rem">Order Placed! 🎉</h2>
+      <p style="margin-bottom:0.5rem">Your order <strong id="placedOrderNumber"></strong> has been placed successfully.</p>
+      <p style="margin-bottom:2rem;font-size:0.875rem">You'll receive a confirmation shortly. Fresh delivery coming soon!</p>
+      <div style="display:flex;gap:0.75rem;justify-content:center">
+        <a href="../customer/orders.html" class="btn btn-primary">View Orders</a>
+        <a href="products.html" class="btn btn-secondary">Continue Shopping</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = api.getUser();
+  if (!user) { window.location.href = 'login.html'; }
+  const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+  if (cart.length === 0) window.location.href = 'cart.html';
+  document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+i.quantity, 0);
+
+  // Pre-fill user info
+  if (user) {
+    api.get('/auth/me').then(d => {
+      document.getElementById('fullName').value = d.user.name || '';
+      document.getElementById('phone').value = d.user.phone || '';
+      document.getElementById('deliveryAddress').value = d.user.address || '';
+    }).catch(() => {});
+  }
+
+  function selectPayment(el) {
+    document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+    el.closest('.payment-option').classList.add('selected');
+  }
+
+  // Render order items
+  let subtotal = 0;
+  const itemsHtml = cart.map(item => {
+    subtotal += item.price * item.quantity;
+    return `<div class="order-mini-item"><span>${item.quantity}× ${item.name}</span><span>${Utils.formatCurrency(item.price * item.quantity)}</span></div>`;
+  }).join('');
+  document.getElementById('orderItems').innerHTML = itemsHtml;
+  const gst = subtotal * 0.05;
+  document.getElementById('checkoutSubtotal').textContent = Utils.formatCurrency(subtotal);
+  document.getElementById('checkoutGst').textContent = Utils.formatCurrency(gst);
+  document.getElementById('checkoutTotal').textContent = Utils.formatCurrency(subtotal + gst);
+
+  async function placeOrder() {
+    const name = document.getElementById('fullName').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const address = document.getElementById('deliveryAddress').value.trim();
+    if (!name || !phone || !address) { Toast.warning('Please fill in all required delivery details'); return; }
+    const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+    document.getElementById('placeBtnText').style.display = 'none';
+    document.getElementById('placeBtnLoading').style.display = 'flex';
+    document.getElementById('placeOrderBtn').disabled = true;
+    try {
+      const data = await api.post('/orders', {
+        items: cart.map(i => ({ product_id: i.id, quantity: i.quantity })),
+        delivery_address: `${name}, ${phone}, ${address}`,
+        payment_method: paymentMethod,
+        notes: document.getElementById('deliveryNotes').value
+      });
+      localStorage.removeItem('df_cart');
+      document.getElementById('placedOrderNumber').textContent = data.order_number;
+      Utils.openModal('successModal');
+    } catch(e) {
+      Toast.error(e.message);
+      document.getElementById('placeBtnText').style.display = 'flex';
+      document.getElementById('placeBtnLoading').style.display = 'none';
+      document.getElementById('placeOrderBtn').disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

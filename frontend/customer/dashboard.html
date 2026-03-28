@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard — Jadhav Dairy</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/customer.css">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="../public/index.html" class="navbar-brand">
+        <div class="brand-logo"><i class="fas fa-cow"></i></div>
+        <div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div>
+      </a>
+      <div class="navbar-actions">
+        <button class="cart-btn" onclick="window.location.href='../public/cart.html'"><i
+            class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></button>
+        <a href="../public/products.html" class="btn btn-primary btn-sm"><i class="fas fa-shopping-bag"></i> Shop</a>
+        <button class="btn btn-ghost btn-sm" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="customer-layout">
+    <!-- Sidebar -->
+    <aside class="customer-sidebar">
+      <div class="customer-sidebar-user">
+        <div class="customer-avatar" id="userInitial">U</div>
+        <div class="customer-name" id="userName">Customer</div>
+        <div class="customer-email" id="userEmail">—</div>
+      </div>
+      <a href="dashboard.html" class="customer-nav-link active"><i class="fas fa-home"></i> Dashboard</a>
+      <a href="orders.html" class="customer-nav-link"><i class="fas fa-receipt"></i> My Orders</a>
+      <a href="subscription.html" class="customer-nav-link"><i class="fas fa-repeat"></i> Subscription</a>
+      <a href="profile.html" class="customer-nav-link"><i class="fas fa-user"></i> My Profile</a>
+      <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border-light)">
+      <a href="../public/products.html" class="customer-nav-link"><i class="fas fa-store"></i> Shop Products</a>
+      <a href="#" class="customer-nav-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="customer-main">
+      <div style="margin-bottom:2rem">
+        <h1 style="font-size:1.75rem;margin-bottom:0.25rem">Welcome back, <span id="welcomeName">—</span>! 👋</h1>
+        <p>Here's a summary of your account and recent activity.</p>
+      </div>
+
+      <!-- Subscription Banner -->
+      <div id="subscriptionBanner" style="display:none">
+        <div class="subscription-card">
+          <div class="subscription-badge"><i class="fas fa-repeat"></i> Active Subscription</div>
+          <h3 id="subProductName">Daily Cow Milk</h3>
+          <p id="subDesc">Delivered to your door every morning</p>
+          <div class="subscription-details" id="subDetails"></div>
+          <div style="margin-top:1.25rem">
+            <a href="subscription.html" class="btn btn-outline btn-sm"><i class="fas fa-cog"></i> Manage
+              Subscription</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Subscription -->
+      <div id="noSubscriptionBanner" style="display:none;margin-bottom:1.5rem">
+        <div class="card" style="border:2px dashed var(--border);background:var(--cream)">
+          <div class="card-body" style="text-align:center;padding:2rem">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem">🥛</div>
+            <h3 style="margin-bottom:0.5rem">Start Daily Milk Delivery</h3>
+            <p style="margin-bottom:1.25rem">Subscribe for fresh milk delivered every morning — no hassle, easy monthly
+              billing.</p>
+            <a href="subscription.html" class="btn btn-primary"><i class="fas fa-plus"></i> Set Up Subscription</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem" id="customerStats">
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="fas fa-receipt"></i></div>
+          <div>
+            <div class="stat-value" id="totalOrders">—</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="fas fa-clock"></i></div>
+          <div>
+            <div class="stat-value" id="pendingOrdersCount">—</div>
+            <div class="stat-label">Pending Orders</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="fas fa-file-invoice"></i></div>
+          <div>
+            <div class="stat-value" id="pendingInvoices">—</div>
+            <div class="stat-label">Pending Bills</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <span>Recent Orders</span>
+          <a href="orders.html" class="btn btn-ghost btn-sm">View All</a>
+        </div>
+        <div id="recentOrdersList">
+          <div class="loader">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="grid grid-3" style="margin-top:1.5rem">
+        <a href="../public/products.html" class="card"
+          style="text-align:center;padding:1.5rem;cursor:pointer;text-decoration:none">
+          <div style="font-size:2rem;margin-bottom:0.5rem">🛒</div>
+          <div style="font-weight:600;color:var(--text)">Shop Now</div>
+          <div style="font-size:0.8rem;color:var(--text-muted)">Browse dairy products</div>
+        </a>
+        <a href="subscription.html" class="card"
+          style="text-align:center;padding:1.5rem;cursor:pointer;text-decoration:none">
+          <div style="font-size:2rem;margin-bottom:0.5rem">🥛</div>
+          <div style="font-weight:600;color:var(--text)">Subscription</div>
+          <div style="font-size:0.8rem;color:var(--text-muted)">Daily milk delivery</div>
+        </a>
+        <a href="profile.html" class="card"
+          style="text-align:center;padding:1.5rem;cursor:pointer;text-decoration:none">
+          <div style="font-size:2rem;margin-bottom:0.5rem">👤</div>
+          <div style="font-weight:600;color:var(--text)">My Profile</div>
+          <div style="font-size:0.8rem;color:var(--text-muted)">Update your details</div>
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+    const user = Auth.requireCustomer();
+    if (user) {
+      document.getElementById('welcomeName').textContent = user.name.split(' ')[0];
+      document.getElementById('userName').textContent = user.name;
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('userInitial').textContent = user.name[0].toUpperCase();
+    }
+    const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+    document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.quantity, 0);
+
+    async function loadDashboard() {
+      try {
+        // Orders
+        const ordersData = await api.get('/orders');
+        const orders = ordersData.orders || [];
+        document.getElementById('totalOrders').textContent = orders.length;
+        document.getElementById('pendingOrdersCount').textContent = orders.filter(o => ['pending', 'confirmed', 'processing'].includes(o.status)).length;
+
+        // Invoices
+        try {
+          const invData = await api.get('/billing/my');
+          document.getElementById('pendingInvoices').textContent = (invData.invoices || []).filter(i => i.status === 'pending').length;
+        } catch (e) { document.getElementById('pendingInvoices').textContent = '0'; }
+
+        // Recent Orders
+        const recent = orders.slice(0, 5);
+        if (recent.length === 0) {
+          document.getElementById('recentOrdersList').innerHTML = '<div class="empty-state" style="padding:2rem"><i class="fas fa-receipt"></i><h3>No orders yet</h3><p><a href="../public/products.html" style="color:var(--primary)">Start shopping!</a></p></div>';
+        } else {
+          document.getElementById('recentOrdersList').innerHTML = `
+          <div class="table-wrapper"><table><thead><tr><th>Order #</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>${recent.map(o => `<tr>
+            <td><strong style="color:var(--primary)">${o.order_number}</strong></td>
+            <td>${Utils.formatCurrency(o.total_amount)}</td>
+            <td>${Utils.statusBadge(o.status)}</td>
+            <td style="font-size:0.8rem;color:var(--text-muted)">${Utils.formatDate(o.created_at)}</td>
+          </tr>`).join('')}</tbody></table></div>`;
+        }
+
+        // Subscription
+        const subData = await api.get('/subscriptions/my');
+        const activeSubs = (subData.subscriptions || []).filter(s => s.is_active);
+        if (activeSubs.length > 0) {
+          const sub = activeSubs[0];
+          document.getElementById('subscriptionBanner').style.display = 'block';
+          document.getElementById('subProductName').textContent = sub.product_name;
+          document.getElementById('subDesc').textContent = `${sub.quantity_per_day} ${sub.unit || 'L'}/day — ${sub.delivery_time} delivery`;
+          document.getElementById('subDetails').innerHTML = `
+          <div class="sub-detail"><div class="sub-detail-val">${sub.quantity_per_day}</div><div class="sub-detail-label">${sub.unit || 'L'} / Day</div></div>
+          <div class="sub-detail"><div class="sub-detail-val">${Utils.formatCurrency(sub.price * sub.quantity_per_day * 30)}</div><div class="sub-detail-label">Est. Monthly</div></div>
+          <div class="sub-detail"><div class="sub-detail-val">${sub.delivery_time}</div><div class="sub-detail-label">Delivery Time</div></div>`;
+        } else {
+          document.getElementById('noSubscriptionBanner').style.display = 'block';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+
+</html>

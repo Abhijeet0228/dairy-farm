@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail — Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .product-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; padding: 3rem 0; align-items: start; }
+    .product-image-box { background: linear-gradient(135deg, var(--cream), var(--border-light)); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; min-height: 400px; font-size: 8rem; border: 1px solid var(--border-light); }
+    .qty-control { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+    .qty-btn { width: 40px; height: 40px; background: var(--bg); border: none; cursor: pointer; font-size: 1.1rem; color: var(--primary); transition: var(--transition); }
+    .qty-btn:hover { background: var(--primary); color: white; }
+    .qty-num { width: 50px; text-align: center; font-weight: 700; }
+    .review-card { background: white; border-radius: var(--radius-md); padding: 1.25rem; border: 1px solid var(--border-light); margin-bottom: 1rem; }
+    @media(max-width:768px) { .product-detail-grid { grid-template-columns: 1fr; gap: 2rem; } }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="navbar-brand"><div class="brand-logo"><i class="fas fa-cow"></i></div><div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div></a>
+    <div class="navbar-nav" id="navMenu">
+      <a href="index.html" class="nav-link">Home</a><a href="products.html" class="nav-link active">Products</a>
+    </div>
+    <div class="navbar-actions">
+      <button class="cart-btn" onclick="window.location.href='cart.html'"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></button>
+      <a href="login.html" class="btn btn-secondary btn-sm" id="loginBtn">Login</a>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn" style="display:none" onclick="Auth.logout()">Logout</button>
+      <button class="hamburger" onclick="document.getElementById('navMenu').classList.toggle('open')"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header" style="padding:4rem 0 2rem">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>/</span><a href="products.html">Products</a><span>/</span><span id="breadcrumbName">Loading...</span></div>
+  </div>
+</div>
+
+<div class="container">
+  <div id="productContent">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Reviews Section -->
+  <div id="reviewsSection" style="display:none;margin-top:3rem">
+    <h2 style="margin-bottom:1.5rem">Customer Reviews</h2>
+    <div id="reviewsList"></div>
+    <div id="reviewForm" style="display:none">
+      <div class="card" style="margin-top:1.5rem"><div class="card-body">
+        <h3 style="font-size:1.1rem;margin-bottom:1rem">Write a Review</h3>
+        <div class="form-group">
+          <label class="form-label">Your Rating</label>
+          <div class="stars" id="starRating">
+            <span class="star" data-val="1" onclick="setRating(1)">★</span>
+            <span class="star" data-val="2" onclick="setRating(2)">★</span>
+            <span class="star" data-val="3" onclick="setRating(3)">★</span>
+            <span class="star" data-val="4" onclick="setRating(4)">★</span>
+            <span class="star" data-val="5" onclick="setRating(5)">★</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comment</label>
+          <textarea id="reviewComment" class="form-control" rows="3" placeholder="Share your experience..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer" style="margin-top:4rem">
+  <div class="container"><div class="footer-bottom"><p>© 2026 Jadhav Dairy Farm.</p></div></div>
+</footer>
+
+<script src="../js/api.js"></script>
+<script>
+  const productId = new URLSearchParams(window.location.search).get('id');
+  let qty = 1, userRating = 0, product = null;
+  const user = api.getUser();
+  if (user) { document.getElementById('loginBtn').style.display='none'; document.getElementById('logoutBtn').style.display='inline-flex'; }
+  const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+  document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+i.quantity, 0);
+  const emojis = {1:'🥛',2:'🍶',3:'🥣',4:'🧈',5:'🥐',6:'🧀',7:'🥤',8:'🍦'};
+
+  async function loadProduct() {
+    if (!productId) { window.location.href = 'products.html'; return; }
+    try {
+      const data = await api.get(`/products/${productId}`);
+      product = data.product;
+      document.getElementById('breadcrumbName').textContent = product.name;
+      document.title = `${product.name} — Jadhav Dairy`;
+      const emoji = emojis[product.category_id] || '🥛';
+      const stars = '★'.repeat(Math.round(product.avg_rating||0)) + '☆'.repeat(5 - Math.round(product.avg_rating||0));
+      document.getElementById('productContent').innerHTML = `
+        <div class="product-detail-grid">
+          <div>
+            <div class="product-image-box">
+              ${product.image_url ? `<img src="${product.image_url}" style="width:100%;height:400px;object-fit:cover;border-radius:var(--radius-lg)" alt="${product.name}">` : emoji}
+            </div>
+          </div>
+          <div>
+            <div class="product-category" style="margin-bottom:0.5rem">${product.category_name}</div>
+            <h1 style="font-size:2rem;margin-bottom:0.75rem">${product.name}</h1>
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem">
+              <div class="product-stars">${stars}</div>
+              <span style="font-size:0.875rem;color:var(--text-muted)">${product.avg_rating ? Number(product.avg_rating).toFixed(1)+' / 5' : 'No ratings yet'} (${product.review_count} reviews)</span>
+            </div>
+            <p style="font-size:1rem;color:var(--text-muted);line-height:1.8;margin-bottom:2rem">${product.description||''}</p>
+            <div style="background:var(--cream);border-radius:var(--radius-md);padding:1.5rem;margin-bottom:2rem">
+              <div class="product-price" style="font-size:2rem;margin-bottom:0.5rem">${Utils.formatCurrency(product.price)} <span>/ ${product.unit}</span></div>
+              <div style="font-size:0.875rem;color:var(--text-muted)">
+                ${product.stock_quantity > 0 ? `<span style="color:#16a34a"><i class="fas fa-check-circle"></i> In Stock (${product.stock_quantity} ${product.unit} available)</span>` : '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Out of Stock</span>'}
+              </div>
+            </div>
+            ${product.stock_quantity > 0 ? `
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem">
+              <div class="qty-control">
+                <button class="qty-btn" onclick="qty=Math.max(1,qty-1);document.getElementById('qtyDisplay').textContent=qty">−</button>
+                <span class="qty-num" id="qtyDisplay">1</span>
+                <button class="qty-btn" onclick="qty=Math.min(${product.stock_quantity},qty+1);document.getElementById('qtyDisplay').textContent=qty">+</button>
+              </div>
+              <button class="btn btn-accent btn-lg" onclick="addToCart()" style="flex:1"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+            </div>
+            <a href="cart.html" class="btn btn-primary" style="width:100%"><i class="fas fa-bolt"></i> Buy Now</a>
+            ` : `<button class="btn btn-primary" style="width:100%" disabled>Out of Stock</button>`}
+            <div style="display:flex;gap:2rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border-light)">
+              <div style="text-align:center"><i class="fas fa-truck" style="color:var(--primary);font-size:1.25rem;margin-bottom:0.3rem"></i><div style="font-size:0.75rem;color:var(--text-muted)">Daily Delivery</div></div>
+              <div style="text-align:center"><i class="fas fa-leaf" style="color:var(--primary);font-size:1.25rem;margin-bottom:0.3rem"></i><div style="font-size:0.75rem;color:var(--text-muted)">100% Natural</div></div>
+              <div style="text-align:center"><i class="fas fa-shield-halved" style="color:var(--primary);font-size:1.25rem;margin-bottom:0.3rem"></i><div style="font-size:0.75rem;color:var(--text-muted)">Quality Assured</div></div>
+              <div style="text-align:center"><i class="fas fa-rotate-left" style="color:var(--primary);font-size:1.25rem;margin-bottom:0.3rem"></i><div style="font-size:0.75rem;color:var(--text-muted)">Easy Returns</div></div>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('reviewsSection').style.display = 'block';
+      loadReviews(data.reviews);
+      if (user && user.role === 'customer') document.getElementById('reviewForm').style.display = 'block';
+    } catch(e) {
+      document.getElementById('productContent').innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+  }
+
+  function loadReviews(reviews) {
+    const container = document.getElementById('reviewsList');
+    if (!reviews || reviews.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted)">No reviews yet. Be the first!</p>';
+      return;
+    }
+    container.innerHTML = '';
+    reviews.forEach(r => {
+      container.innerHTML += `
+        <div class="review-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+            <div style="font-weight:600">${r.customer_name||r.name}</div>
+            <div style="color:#f59e0b;font-size:0.9rem">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+          </div>
+          <p style="font-size:0.875rem;color:var(--text-muted)">${r.comment||''}</p>
+          <div style="font-size:0.75rem;color:var(--text-light);margin-top:0.5rem">${Utils.formatDate(r.created_at)}</div>
+        </div>`;
+    });
+  }
+
+  function setRating(val) {
+    userRating = val;
+    document.querySelectorAll('.star').forEach((s,i) => s.classList.toggle('active', i < val));
+  }
+
+  async function submitReview() {
+    if (!user) { Toast.warning('Please login to submit a review'); return; }
+    if (userRating === 0) { Toast.warning('Please select a rating'); return; }
+    try {
+      await api.post('/reviews', { product_id: productId, rating: userRating, comment: document.getElementById('reviewComment').value });
+      Toast.success('Review submitted!');
+      loadProduct();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  function addToCart() {
+    const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+    const idx = cart.findIndex(i => i.id === product.id);
+    if (idx >= 0) cart[idx].quantity += qty; else cart.push({...product, quantity: qty});
+    localStorage.setItem('df_cart', JSON.stringify(cart));
+    document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+i.quantity, 0);
+    Toast.success(`${qty} × ${product.name} added to cart!`);
+  }
+
+  loadProduct();
+</script>
+</body>
+</html>

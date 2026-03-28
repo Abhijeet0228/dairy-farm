@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/customer.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="../public/index.html" class="navbar-brand"><div class="brand-logo"><i class="fas fa-cow"></i></div><div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div></a>
+    <div class="navbar-actions">
+      <button class="cart-btn" onclick="window.location.href='../public/cart.html'"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></button>
+      <a href="../public/products.html" class="btn btn-primary btn-sm">Shop</a>
+      <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="customer-layout">
+  <aside class="customer-sidebar">
+    <div class="customer-sidebar-user">
+      <div class="customer-avatar" id="userInitial">U</div>
+      <div class="customer-name" id="userName">Customer</div>
+      <div class="customer-email" id="userEmail">—</div>
+    </div>
+    <a href="dashboard.html" class="customer-nav-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="orders.html" class="customer-nav-link active"><i class="fas fa-receipt"></i> My Orders</a>
+    <a href="subscription.html" class="customer-nav-link"><i class="fas fa-repeat"></i> Subscription</a>
+    <a href="profile.html" class="customer-nav-link"><i class="fas fa-user"></i> My Profile</a>
+    <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border-light)">
+    <a href="../public/products.html" class="customer-nav-link"><i class="fas fa-store"></i> Shop Products</a>
+    <a href="#" class="customer-nav-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </aside>
+
+  <main class="customer-main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem">
+      <h1 style="font-size:1.75rem">My Orders</h1>
+      <a href="../public/products.html" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Place New Order</a>
+    </div>
+
+    <!-- Filter -->
+    <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
+      <select class="form-control" id="orderStatusFilter" style="width:160px" onchange="loadOrders()">
+        <option value="">All Orders</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="processing">Processing</option>
+        <option value="out_for_delivery">Out for Delivery</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+
+    <div id="ordersList"><div class="loader"><div class="spinner"></div></div></div>
+  </main>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-backdrop" id="orderModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><div class="modal-title">Order Details</div><button class="modal-close" onclick="Utils.closeModal('orderModal')">&times;</button></div>
+    <div id="orderModalContent"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="Utils.closeModal('orderModal')">Close</button></div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireCustomer();
+  if (user) { document.getElementById('userName').textContent = user.name; document.getElementById('userEmail').textContent = user.email; document.getElementById('userInitial').textContent = user.name[0]; }
+  const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+  document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+i.quantity, 0);
+
+  const trackSteps = ['pending','confirmed','processing','out_for_delivery','delivered'];
+
+  async function loadOrders() {
+    const status = document.getElementById('orderStatusFilter').value;
+    let url = '/orders';
+    if (status) url += `?status=${status}`;
+    try {
+      const data = await api.get(url);
+      const orders = data.orders || [];
+      if (!orders.length) {
+        document.getElementById('ordersList').innerHTML = `<div class="empty-state" style="padding:4rem"><i class="fas fa-receipt"></i><h3>No orders found</h3><p>Your order history will appear here.</p><a href="../public/products.html" class="btn btn-primary" style="margin-top:1rem">Start Shopping</a></div>`;
+        return;
+      }
+      document.getElementById('ordersList').innerHTML = orders.map(o => {
+        const stepIdx = trackSteps.indexOf(o.status);
+        const isCancelled = o.status === 'cancelled';
+        return `<div class="card" style="margin-bottom:1rem">
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+              <div>
+                <div style="font-weight:700;color:var(--primary);font-size:1rem">${o.order_number}</div>
+                <div style="font-size:0.8rem;color:var(--text-muted)">${Utils.formatDateTime(o.created_at)}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;font-size:1.15rem">${Utils.formatCurrency(o.total_amount)}</div>
+                <div style="margin-top:0.25rem">${Utils.statusBadge(o.payment_status)} ${Utils.statusBadge(o.status)}</div>
+              </div>
+            </div>
+            ${!isCancelled ? `
+            <div class="order-timeline">
+              ${trackSteps.map((step, i) => `
+                <div class="timeline-step">
+                  <div class="timeline-dot ${i < stepIdx ? 'done' : i === stepIdx ? 'current' : ''}">
+                    <i class="fas ${i < stepIdx ? 'fa-check' : 'fa-circle'}"></i>
+                  </div>
+                  <div class="timeline-label">${step.replace(/_/g,' ')}</div>
+                </div>
+                ${i < trackSteps.length - 1 ? `<div class="timeline-line ${i < stepIdx ? 'done' : ''}"></div>` : ''}
+              `).join('')}
+            </div>` : ''}
+            <div style="margin-top:1rem;display:flex;gap:0.75rem">
+              <button class="btn btn-secondary btn-sm" onclick="viewOrderDetail(${o.id})"><i class="fas fa-eye"></i> View Details</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) {
+      document.getElementById('ordersList').innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+  }
+
+  async function viewOrderDetail(id) {
+    try {
+      const data = await api.get(`/orders/${id}`);
+      const o = data.order;
+      document.getElementById('orderModalContent').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+          <div><div style="font-size:0.7rem;color:var(--text-muted)">Order Number</div><div style="font-weight:700;color:var(--primary)">${o.order_number}</div></div>
+          <div><div style="font-size:0.7rem;color:var(--text-muted)">Placed On</div><div>${Utils.formatDateTime(o.created_at)}</div></div>
+          <div><div style="font-size:0.7rem;color:var(--text-muted)">Status</div><div>${Utils.statusBadge(o.status)}</div></div>
+          <div><div style="font-size:0.7rem;color:var(--text-muted)">Payment</div><div>${Utils.statusBadge(o.payment_status)} (${o.payment_method?.toUpperCase()})</div></div>
+          ${o.delivery_address ? `<div style="grid-column:1/-1"><div style="font-size:0.7rem;color:var(--text-muted)">Delivery Address</div><div>${o.delivery_address}</div></div>` : ''}
+        </div>
+        <h4 style="font-size:0.9rem;margin-bottom:0.75rem">Items Ordered</h4>
+        <div class="table-wrapper">
+          <table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead>
+          <tbody>${(o.items||[]).map(i => `<tr><td>${i.product_name}</td><td>${i.quantity}</td><td>${Utils.formatCurrency(i.unit_price)}</td><td>${Utils.formatCurrency(i.subtotal)}</td></tr>`).join('')}</tbody>
+          <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700;padding:0.6rem 1rem">Total</td><td style="font-weight:800;color:var(--primary)">${Utils.formatCurrency(o.total_amount)}</td></tr></tfoot>
+          </table>
+        </div>`;
+      Utils.openModal('orderModal');
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  loadOrders();
+</script>
+</body>
+</html>

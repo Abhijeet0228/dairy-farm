@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription — Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/customer.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="../public/index.html" class="navbar-brand"><div class="brand-logo"><i class="fas fa-cow"></i></div><div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div></a>
+    <div class="navbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+<div class="customer-layout">
+  <aside class="customer-sidebar">
+    <div class="customer-sidebar-user">
+      <div class="customer-avatar" id="userInitial">U</div>
+      <div class="customer-name" id="userName">Customer</div>
+      <div class="customer-email" id="userEmail">—</div>
+    </div>
+    <a href="dashboard.html" class="customer-nav-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="orders.html" class="customer-nav-link"><i class="fas fa-receipt"></i> My Orders</a>
+    <a href="subscription.html" class="customer-nav-link active"><i class="fas fa-repeat"></i> Subscription</a>
+    <a href="profile.html" class="customer-nav-link"><i class="fas fa-user"></i> My Profile</a>
+    <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border-light)">
+    <a href="#" class="customer-nav-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </aside>
+  <main class="customer-main">
+    <h1 style="font-size:1.75rem;margin-bottom:0.25rem">My Subscriptions</h1>
+    <p style="margin-bottom:2rem">Manage your daily dairy deliveries.</p>
+    <div id="subscriptionsList"><div class="loader"><div class="spinner"></div></div></div>
+    <div class="card" style="margin-top:2rem">
+      <div class="card-header"><i class="fas fa-plus" style="color:var(--primary);margin-right:0.5rem"></i>Add New Subscription</div>
+      <div class="card-body">
+        <form id="subscribeForm">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Product *</label>
+              <select id="subProduct" class="form-control" required onchange="updateEstimate()"><option value="">Select a product...</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Qty per Day *</label>
+              <input type="number" id="subQty" class="form-control" min="0.5" step="0.5" value="1" required oninput="updateEstimate()">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Delivery Time</label>
+              <select id="subTime" class="form-control">
+                <option value="morning">Morning (5–8 AM)</option>
+                <option value="evening">Evening (5–7 PM)</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Start Date</label>
+              <input type="date" id="subStart" class="form-control">
+            </div>
+          </div>
+          <div class="alert alert-info" id="estimateBox" style="display:none">
+            <i class="fas fa-calculator"></i><span id="estimateText"></span>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Subscribe Now</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="editSubModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Modify Subscription</div><button class="modal-close" onclick="Utils.closeModal('editSubModal')">&times;</button></div>
+    <input type="hidden" id="editSubId">
+    <div class="form-group"><label class="form-label">Quantity per Day</label><input type="number" id="editSubQty" class="form-control" min="0.5" step="0.5"></div>
+    <div class="form-group"><label class="form-label">Delivery Time</label>
+      <select id="editSubTime" class="form-control"><option value="morning">Morning</option><option value="evening">Evening</option><option value="both">Both</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">Status</label>
+      <select id="editSubActive" class="form-control"><option value="1">Active</option><option value="0">Paused</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('editSubModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSubscription()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireCustomer();
+  if (user) { document.getElementById('userName').textContent = user.name; document.getElementById('userEmail').textContent = user.email; document.getElementById('userInitial').textContent = user.name[0]; }
+  document.getElementById('subStart').value = new Date().toISOString().slice(0, 10);
+  let products = [];
+
+  async function loadSubscriptions() {
+    try {
+      const data = await api.get('/subscriptions/my');
+      const subs = data.subscriptions || [];
+      const container = document.getElementById('subscriptionsList');
+      if (!subs.length) { container.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No active subscriptions. Add one below!</div>'; return; }
+      container.innerHTML = subs.map(s => `
+        <div class="card" style="margin-bottom:1rem"><div class="card-body">
+          <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+            <div>
+              <div style="font-weight:700;font-size:1.05rem">${s.product_name}</div>
+              <div style="font-size:0.875rem;color:var(--text-muted);margin-top:0.25rem">
+                <i class="fas fa-droplet" style="color:var(--primary)"></i> ${s.quantity_per_day} L/day &nbsp;
+                <i class="fas fa-clock" style="color:var(--primary)"></i> ${s.delivery_time} &nbsp;
+                <i class="fas fa-calendar" style="color:var(--primary)"></i> Since ${Utils.formatDate(s.start_date)}
+              </div>
+              <div style="margin-top:0.5rem;font-weight:700;color:var(--primary)">${Utils.formatCurrency(s.price * s.quantity_per_day * 30)}<span style="font-size:0.8rem;font-weight:400;color:var(--text-muted)"> est./month</span></div>
+            </div>
+            <div style="display:flex;gap:0.5rem;align-items:flex-start">
+              ${s.is_active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-warning">Paused</span>'}
+              <button class="btn btn-secondary btn-sm" onclick='editSub(${JSON.stringify(s).replace(/'/g,"\\'")})'><i class="fas fa-edit"></i></button>
+              <button class="btn btn-danger btn-sm" onclick="cancelSub(${s.id})"><i class="fas fa-times"></i></button>
+            </div>
+          </div>
+        </div></div>`).join('');
+    } catch(e) { document.getElementById('subscriptionsList').innerHTML = `<div class="alert alert-danger">${e.message}</div>`; }
+  }
+
+  async function loadProducts() {
+    try {
+      const data = await api.get('/products?limit=50');
+      products = data.products || [];
+      const sel = document.getElementById('subProduct');
+      products.forEach(p => sel.innerHTML += `<option value="${p.id}" data-price="${p.price}">${p.name} — ${Utils.formatCurrency(p.price)}/${p.unit}</option>`);
+    } catch(e) {}
+  }
+
+  function updateEstimate() {
+    const sel = document.getElementById('subProduct');
+    const opt = sel.options[sel.selectedIndex];
+    const qty = parseFloat(document.getElementById('subQty').value) || 0;
+    if (!opt?.dataset.price || qty <= 0) { document.getElementById('estimateBox').style.display = 'none'; return; }
+    const daily = qty * parseFloat(opt.dataset.price);
+    document.getElementById('estimateText').textContent = `~${Utils.formatCurrency(daily)}/day × 30 = ${Utils.formatCurrency(daily*30)}/month`;
+    document.getElementById('estimateBox').style.display = 'flex';
+  }
+
+  function editSub(s) {
+    document.getElementById('editSubId').value = s.id;
+    document.getElementById('editSubQty').value = s.quantity_per_day;
+    document.getElementById('editSubTime').value = s.delivery_time;
+    document.getElementById('editSubActive').value = s.is_active ? '1' : '0';
+    Utils.openModal('editSubModal');
+  }
+
+  async function saveSubscription() {
+    const id = document.getElementById('editSubId').value;
+    try {
+      await api.put(`/subscriptions/${id}`, { quantity_per_day: document.getElementById('editSubQty').value, delivery_time: document.getElementById('editSubTime').value, is_active: document.getElementById('editSubActive').value });
+      Utils.closeModal('editSubModal');
+      Toast.success('Subscription updated!');
+      loadSubscriptions();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  async function cancelSub(id) {
+    if (!confirm('Cancel this subscription?')) return;
+    try { await api.delete(`/subscriptions/${id}`); Toast.success('Subscription cancelled.'); loadSubscriptions(); } catch(e) { Toast.error(e.message); }
+  }
+
+  document.getElementById('subscribeForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const product_id = document.getElementById('subProduct').value;
+    if (!product_id) { Toast.warning('Please select a product'); return; }
+    try {
+      await api.post('/subscriptions', { product_id, quantity_per_day: document.getElementById('subQty').value, delivery_time: document.getElementById('subTime').value, start_date: document.getElementById('subStart').value });
+      Toast.success('Subscription created!');
+      document.getElementById('subscribeForm').reset();
+      document.getElementById('subStart').value = new Date().toISOString().slice(0,10);
+      document.getElementById('estimateBox').style.display = 'none';
+      loadSubscriptions();
+    } catch(e) { Toast.error(e.message); }
+  });
+
+  loadSubscriptions();
+  loadProducts();
+</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deliveries — Admin | Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-cow"></i></div><div class="sidebar-brand">Jadhav<span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <a href="milk-records.html" class="sidebar-link"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link active"><i class="fas fa-truck"></i> Deliveries</a>
+      <a href="billing.html" class="sidebar-link"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-user-avatar" id="adminInitial">A</div><div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">admin</div></div></div></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+        <div class="topbar-title">Delivery Management</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="generateSchedule()"><i class="fas fa-calendar-plus"></i> Generate Today's Schedule</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <!-- Summary Cards -->
+      <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem">
+        <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-clock"></i></div><div><div class="stat-value" id="pendingCount">—</div><div class="stat-label">Pending Today</div></div></div>
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div><div class="stat-value" id="deliveredCount">—</div><div class="stat-label">Delivered Today</div></div></div>
+        <div class="stat-card"><div class="stat-icon red"><i class="fas fa-times-circle"></i></div><div><div class="stat-value" id="missedCount">—</div><div class="stat-label">Missed Today</div></div></div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-header">
+          <span class="data-card-title">Delivery Schedule</span>
+          <div class="data-card-actions">
+            <input type="date" class="form-control" id="deliveryDate" onchange="loadDeliveries()" style="width:160px">
+            <select class="form-control" id="deliveryStatus" onchange="loadDeliveries()" style="width:150px">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="delivered">Delivered</option>
+              <option value="missed">Missed</option>
+              <option value="partial">Partial</option>
+            </select>
+          </div>
+        </div>
+        <div id="deliveriesTable"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Update Delivery Modal -->
+<div class="modal-backdrop" id="deliveryModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title">Update Delivery</div><button class="modal-close" onclick="Utils.closeModal('deliveryModal')">&times;</button></div>
+    <input type="hidden" id="deliveryId">
+    <div class="form-group"><label class="form-label">Status</label>
+      <select id="deliveryStatusUpdate" class="form-control">
+        <option value="pending">Pending</option>
+        <option value="delivered">Delivered</option>
+        <option value="missed">Missed</option>
+        <option value="partial">Partial</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Quantity Delivered (L)</label><input type="number" id="deliveryQtyUpdate" class="form-control" min="0" step="0.5"></div>
+    <div class="form-group"><label class="form-label">Notes</label><input type="text" id="deliveryNoteUpdate" class="form-control" placeholder="Optional notes"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('deliveryModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDelivery()"><i class="fas fa-save"></i> Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) { document.getElementById('adminName').textContent = user.name; document.getElementById('adminRole').textContent = user.role; document.getElementById('adminInitial').textContent = user.name[0]; }
+  document.getElementById('deliveryDate').value = new Date().toISOString().slice(0, 10);
+
+  async function loadDeliveries() {
+    const date = document.getElementById('deliveryDate').value;
+    const status = document.getElementById('deliveryStatus').value;
+    let url = '/deliveries?';
+    if (date) url += `&date=${date}`;
+    if (status) url += `&status=${status}`;
+    try {
+      const data = await api.get(url);
+      const deliveries = data.deliveries;
+      // Update summary counts for today
+      const todayDeliveries = deliveries.filter(d => d.delivery_date === new Date().toISOString().slice(0,10));
+      document.getElementById('pendingCount').textContent = deliveries.filter(d => d.status === 'pending').length;
+      document.getElementById('deliveredCount').textContent = deliveries.filter(d => d.status === 'delivered').length;
+      document.getElementById('missedCount').textContent = deliveries.filter(d => d.status === 'missed').length;
+
+      if (!deliveries.length) {
+        document.getElementById('deliveriesTable').innerHTML = '<div class="empty-state" style="padding:3rem"><i class="fas fa-truck"></i><h3>No deliveries scheduled</h3><p>Click "Generate Today\'s Schedule" to create delivery entries from active subscriptions.</p></div>';
+        return;
+      }
+      const statusColors = { pending:'warning', delivered:'success', missed:'danger', partial:'info' };
+      document.getElementById('deliveriesTable').innerHTML = `
+        <div class="table-wrapper"><table><thead><tr><th>Customer</th><th>Address</th><th>Product</th><th>Qty Scheduled</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>${deliveries.map(d => `<tr>
+          <td><div style="font-weight:600;font-size:0.875rem">${d.customer_name}</div><div style="font-size:0.75rem;color:var(--text-muted)">${d.phone||''}</div></td>
+          <td style="font-size:0.8rem;color:var(--text-muted);max-width:200px">${d.address||'—'}</td>
+          <td style="font-size:0.875rem">${d.product_name}</td>
+          <td><strong style="color:var(--primary)">${d.quantity} L</strong></td>
+          <td><span class="badge badge-${statusColors[d.status]||'secondary'}">${d.status}</span></td>
+          <td style="font-size:0.8rem">${Utils.formatDate(d.delivery_date)}</td>
+          <td><button class="btn btn-secondary btn-sm" onclick="openDeliveryModal(${d.id}, '${d.status}', ${d.quantity})"><i class="fas fa-edit"></i> Update</button></td>
+        </tr>`).join('')}
+        </tbody></table></div>`;
+    } catch(e) {
+      document.getElementById('deliveriesTable').innerHTML = `<div class="alert alert-warning" style="margin:1rem"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+  }
+
+  function openDeliveryModal(id, status, qty) {
+    document.getElementById('deliveryId').value = id;
+    document.getElementById('deliveryStatusUpdate').value = status;
+    document.getElementById('deliveryQtyUpdate').value = qty;
+    document.getElementById('deliveryNoteUpdate').value = '';
+    Utils.openModal('deliveryModal');
+  }
+
+  async function saveDelivery() {
+    const id = document.getElementById('deliveryId').value;
+    const status = document.getElementById('deliveryStatusUpdate').value;
+    const quantity = document.getElementById('deliveryQtyUpdate').value;
+    const notes = document.getElementById('deliveryNoteUpdate').value;
+    try {
+      await api.put(`/deliveries/${id}`, { status, quantity, notes });
+      Utils.closeModal('deliveryModal');
+      Toast.success('Delivery updated!');
+      loadDeliveries();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  async function generateSchedule() {
+    const date = document.getElementById('deliveryDate').value;
+    try {
+      const data = await api.post('/deliveries/generate-schedule', { date });
+      Toast.success(data.message);
+      loadDeliveries();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  loadDeliveries();
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders — Admin | Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-cow"></i></div><div class="sidebar-brand">Jadhav<span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link active"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <a href="milk-records.html" class="sidebar-link"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link"><i class="fas fa-truck"></i> Deliveries</a>
+      <a href="billing.html" class="sidebar-link"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-user-avatar" id="adminInitial">A</div><div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">admin</div></div></div></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left"><button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button><div class="topbar-title">Order Management</div></div>
+    </div>
+    <div class="admin-content">
+      <!-- Filter Bar -->
+      <div class="data-card" style="margin-bottom:1.5rem">
+        <div class="data-card-header">
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
+            <select class="form-control" id="statusFilter" onchange="loadOrders()" style="width:150px">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option><option value="confirmed">Confirmed</option>
+              <option value="processing">Processing</option><option value="out_for_delivery">Out for Delivery</option>
+              <option value="delivered">Delivered</option><option value="cancelled">Cancelled</option>
+            </select>
+            <select class="form-control" id="paymentFilter" onchange="loadOrders()" style="width:150px">
+              <option value="">All Payments</option>
+              <option value="pending">Unpaid</option><option value="paid">Paid</option>
+            </select>
+            <input type="date" class="form-control" id="dateFrom" onchange="loadOrders()" style="width:150px">
+            <input type="date" class="form-control" id="dateTo" onchange="loadOrders()" style="width:150px">
+            <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+          </div>
+          <span class="data-card-title" id="orderCount" style="white-space:nowrap"></span>
+        </div>
+        <div id="ordersTable"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-backdrop" id="orderModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header"><div class="modal-title">Order Details</div><button class="modal-close" onclick="Utils.closeModal('orderModal')">&times;</button></div>
+    <div id="orderDetail"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('orderModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal-backdrop" id="statusModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title">Update Order Status</div><button class="modal-close" onclick="Utils.closeModal('statusModal')">&times;</button></div>
+    <input type="hidden" id="updateOrderId">
+    <div class="form-group"><label class="form-label">Order Status</label>
+      <select id="newStatus" class="form-control">
+        <option value="pending">Pending</option><option value="confirmed">Confirmed</option>
+        <option value="processing">Processing</option><option value="out_for_delivery">Out for Delivery</option>
+        <option value="delivered">Delivered</option><option value="cancelled">Cancelled</option>
+      </select></div>
+    <div class="form-group"><label class="form-label">Payment Status</label>
+      <select id="newPaymentStatus" class="form-control">
+        <option value="">— No change —</option><option value="pending">Pending</option>
+        <option value="paid">Paid</option><option value="failed">Failed</option>
+      </select></div>
+    <div class="form-group"><label class="form-label">Delivery Notes</label><input type="text" id="deliveryNotesInput" class="form-control" placeholder="Optional note"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('statusModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStatus()"><i class="fas fa-save"></i> Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) { document.getElementById('adminName').textContent = user.name; document.getElementById('adminRole').textContent = user.role; document.getElementById('adminInitial').textContent = user.name[0]; }
+
+  async function loadOrders() {
+    const status = document.getElementById('statusFilter').value;
+    const payment = document.getElementById('paymentFilter').value;
+    const from = document.getElementById('dateFrom').value;
+    const to = document.getElementById('dateTo').value;
+    let url = '/orders?';
+    if (status) url += `&status=${status}`;
+    if (payment) url += `&payment_status=${payment}`;
+    if (from) url += `&date_from=${from}`;
+    if (to) url += `&date_to=${to}`;
+    try {
+      const data = await api.get(url);
+      document.getElementById('orderCount').textContent = `${data.orders.length} orders`;
+      if (!data.orders.length) {
+        document.getElementById('ordersTable').innerHTML = '<div class="empty-state" style="padding:3rem"><i class="fas fa-receipt"></i><h3>No orders found</h3></div>';
+        return;
+      }
+      document.getElementById('ordersTable').innerHTML = `
+        <div class="table-wrapper"><table><thead><tr><th>Order #</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Order Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>${data.orders.map(o => `<tr>
+          <td><strong style="color:var(--primary)">${o.order_number}</strong></td>
+          <td><div style="font-weight:600;font-size:0.875rem">${o.customer_name}</div><div style="font-size:0.75rem;color:var(--text-muted)">${o.customer_phone||''}</div></td>
+          <td><strong>${Utils.formatCurrency(o.total_amount)}</strong></td>
+          <td>${Utils.statusBadge(o.payment_status)}</td>
+          <td><span class="badge status-${o.status}">${o.status.replace(/_/g,' ')}</span></td>
+          <td style="font-size:0.8rem;color:var(--text-muted)">${Utils.formatDate(o.created_at)}</td>
+          <td><div style="display:flex;gap:0.4rem">
+            <button class="btn btn-secondary btn-sm" onclick="viewOrder(${o.id})" title="View"><i class="fas fa-eye"></i></button>
+            <button class="btn btn-primary btn-sm" onclick="openStatusModal(${o.id},'${o.status}','${o.payment_status}')" title="Update Status"><i class="fas fa-edit"></i></button>
+          </div></td>
+        </tr>`).join('')}
+        </tbody></table></div>`;
+    } catch(e) {
+      document.getElementById('ordersTable').innerHTML = `<div class="alert alert-warning" style="margin:1rem"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+  }
+
+  async function viewOrder(id) {
+    try {
+      const data = await api.get(`/orders/${id}`);
+      const o = data.order;
+      document.getElementById('orderDetail').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem">
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Order Number</div><div style="font-weight:700;color:var(--primary)">${o.order_number}</div></div>
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Date</div><div>${Utils.formatDateTime(o.created_at)}</div></div>
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Customer</div><div style="font-weight:600">${o.customer_name}</div><div style="font-size:0.8rem;color:var(--text-muted)">${o.customer_email}</div></div>
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Payment</div><div>${Utils.statusBadge(o.payment_status)} via ${o.payment_method.toUpperCase()}</div></div>
+          <div style="grid-column:1/-1"><div style="font-size:0.75rem;color:var(--text-muted)">Delivery Address</div><div>${o.delivery_address||'—'}</div></div>
+        </div>
+        <h4 style="margin-bottom:0.75rem;font-size:0.9rem">Items</h4>
+        <div class="table-wrapper"><table><thead><tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr></thead>
+        <tbody>${(o.items||[]).map(i => `<tr><td>${i.product_name}</td><td>${i.quantity}</td><td>${Utils.formatCurrency(i.unit_price)}</td><td>${Utils.formatCurrency(i.subtotal)}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700;padding:0.75rem 1rem">Total:</td><td style="font-weight:700;font-size:1.05rem;color:var(--primary)">${Utils.formatCurrency(o.total_amount)}</td></tr></tfoot></table></div>
+        <div style="margin-top:1rem">${Utils.statusBadge(o.status)}</div>`;
+      Utils.openModal('orderModal');
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  function openStatusModal(id, status, payStatus) {
+    document.getElementById('updateOrderId').value = id;
+    document.getElementById('newStatus').value = status;
+    document.getElementById('newPaymentStatus').value = payStatus || '';
+    document.getElementById('deliveryNotesInput').value = '';
+    Utils.openModal('statusModal');
+  }
+
+  async function saveStatus() {
+    const id = document.getElementById('updateOrderId').value;
+    const status = document.getElementById('newStatus').value;
+    const payment_status = document.getElementById('newPaymentStatus').value || undefined;
+    const delivery_notes = document.getElementById('deliveryNotesInput').value;
+    try {
+      await api.put(`/orders/${id}/status`, { status, payment_status, delivery_notes });
+      Utils.closeModal('statusModal');
+      Toast.success('Order updated!');
+      loadOrders();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  function clearFilters() {
+    ['statusFilter','paymentFilter','dateFrom','dateTo'].forEach(id => document.getElementById(id).value = '');
+    loadOrders();
+  }
+
+  loadOrders();
+</script>
+</body>
+</html>

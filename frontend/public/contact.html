@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Jadhav Dairy</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      padding: 4rem 0;
+    }
+
+    .contact-info-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+    }
+
+    .contact-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(45, 106, 79, 0.1), rgba(116, 198, 157, 0.15));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .map-placeholder {
+      background: linear-gradient(135deg, var(--cream), var(--border-light));
+      border-radius: var(--radius-lg);
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-light);
+      margin-top: 2rem;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 0;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .faq-answer {
+      padding: 0 0 1.25rem;
+      color: var(--text-muted);
+      display: none;
+      line-height: 1.8;
+    }
+
+    .faq-item.open .faq-answer {
+      display: block;
+    }
+
+    .faq-item.open .faq-icon {
+      transform: rotate(180deg);
+    }
+
+    .faq-icon {
+      transition: transform 0.3s;
+      color: var(--primary);
+    }
+
+    @media(max-width:768px) {
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <div class="brand-logo"><i class="fas fa-cow"></i></div>
+        <div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div>
+      </a>
+      <div class="navbar-nav" id="navMenu">
+        <a href="index.html" class="nav-link">Home</a><a href="about.html" class="nav-link">About</a>
+        <a href="products.html" class="nav-link">Products</a><a href="contact.html" class="nav-link active">Contact</a>
+      </div>
+      <div class="navbar-actions">
+        <button class="cart-btn" onclick="window.location.href='cart.html'"><i class="fas fa-shopping-cart"></i><span
+            class="cart-count">0</span></button>
+        <a href="login.html" class="btn btn-secondary btn-sm">Login</a>
+        <button class="hamburger"
+          onclick="document.getElementById('navMenu').classList.toggle('open')"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb"><a href="index.html">Home</a><span>/</span><span>Contact Us</span></div>
+      <h1>Get in Touch</h1>
+      <p>We'd love to hear from you — whether it's a subscription query, feedback, or partnership.</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="contact-grid">
+      <div>
+        <h2 style="margin-bottom:2rem">Contact Information</h2>
+        <div class="contact-info-item">
+          <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.25rem">Our Farm</h4>
+            <p>Sangliwadi,<br>Sangli, Maharashtra — 416416</p>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.25rem">Call / WhatsApp</h4>
+            <p>+91 9421127449<br>Mon–Sat, 6 AM – 8 PM</p>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.25rem">Email Us</h4>
+            <p>info@jadhavdairy.com<br>support@jadhavdairy.com</p>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-icon"><i class="fas fa-clock"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.25rem">Delivery Hours</h4>
+            <p>Morning: 5 AM – 10 AM<br>Evening: 5 PM – 7 PM</p>
+          </div>
+        </div>
+        <div class="map-placeholder">
+          <i class="fas fa-map-marker-alt" style="font-size:2.5rem;color:var(--primary);margin-bottom:0.75rem"></i>
+          <p style="color:var(--text-muted);font-size:0.875rem">Jadhav Dairy Farm</p>
+          <p style="color:var(--text-light);font-size:0.8rem">Sangliwadi, Sangli, Maharashtra</p>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-body">
+            <h2 style="margin-bottom:1.5rem">Send Us a Message</h2>
+            <div id="formAlert"></div>
+            <form id="contactForm">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Your Name *</label><input type="text" id="cname"
+                    class="form-control" required></div>
+                <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" id="cphone"
+                    class="form-control"></div>
+              </div>
+              <div class="form-group"><label class="form-label">Email Address *</label><input type="email" id="cemail"
+                  class="form-control" required></div>
+              <div class="form-group">
+                <label class="form-label">Subject</label>
+                <select id="csubject" class="form-control">
+                  <option>General Enquiry</option>
+                  <option>Subscription Query</option>
+                  <option>Delivery Issue</option>
+                  <option>Product Feedback</option>
+                  <option>Partnership</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">Message *</label><textarea id="cmessage"
+                  class="form-control" rows="5" placeholder="Tell us how we can help..." required></textarea></div>
+              <button type="submit" class="btn btn-primary" style="width:100%"><i class="fas fa-paper-plane"></i> Send
+                Message</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <section style="padding:4rem 0">
+      <div class="section-header"><span class="section-label">FAQ</span>
+        <h2>Frequently Asked Questions</h2>
+      </div>
+      <div style="max-width:720px;margin:0 auto">
+        <div class="faq-item open">
+          <div class="faq-question" onclick="toggleFaq(this)">How do I start a daily milk subscription? <i
+              class="fas fa-chevron-down faq-icon"></i></div>
+          <div class="faq-answer">Simply register your account, go to the Customer Panel, and click on "Subscriptions".
+            Select your preferred product, quantity, and delivery time. Your delivery will start from the next morning!
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">What time is morning milk delivery? <i
+              class="fas fa-chevron-down faq-icon"></i></div>
+          <div class="faq-answer">Morning deliveries are made between 5 AM and 8 AM, depending on your location. Evening
+            deliveries are between 5 PM and 7 PM.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">How is billing done for subscribers? <i
+              class="fas fa-chevron-down faq-icon"></i></div>
+          <div class="faq-answer">Monthly invoices are generated automatically based on your daily delivery quantity.
+            You can pay at the end of each month via cash, UPI, or online transfer. View your invoice in the Customer
+            Panel.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">Can I pause or cancel my subscription? <i
+              class="fas fa-chevron-down faq-icon"></i></div>
+          <div class="faq-answer">Yes! You can pause or cancel your subscription anytime from your Customer Dashboard.
+            Changes take effect from the next delivery day.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">Are your products FSSAI certified? <i
+              class="fas fa-chevron-down faq-icon"></i></div>
+          <div class="faq-answer">Absolutely. Jadhav Dairy is FSSAI certified and all our products undergo regular
+            quality testing. We maintain strict hygiene standards at every step.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">Do you deliver on Sundays and holidays? <i
+              class="fas fa-chevron-down faq-icon"></i></div>
+          <div class="faq-answer">Yes! We deliver 365 days a year including Sundays and holidays. Fresh milk doesn't
+            take a day off, and neither do we! 🥛</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="grid grid-4">
+        <div>
+          <div class="footer-brand"><span class="brand-name">Jadhav Dairy</span></div>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.55)">Farm-fresh dairy delivered daily.</p>
+        </div>
+        <div>
+          <h4>Links</h4>
+          <div class="footer-links"><a href="index.html">Home</a><a href="about.html">About</a><a
+              href="products.html">Products</a></div>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.6)"><i class="fas fa-phone"
+              style="color:var(--secondary);margin-right:0.5rem"></i>+91 98765 43210</p>
+        </div>
+        <div>
+          <h4>Social</h4>
+          <div class="social-links"><a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a><a href="#"
+              class="social-link"><i class="fab fa-instagram"></i></a><a href="#" class="social-link"><i
+                class="fab fa-whatsapp"></i></a></div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Jadhav Dairy Farm. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/api.js"></script>
+  <script>
+    function toggleFaq(el) { el.closest('.faq-item').classList.toggle('open'); }
+    document.getElementById('contactForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const alert = document.getElementById('formAlert');
+      alert.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Thank you! Your message has been sent. We\'ll get back to you within 24 hours.</div>';
+      document.getElementById('contactForm').reset();
+      setTimeout(() => alert.innerHTML = '', 5000);
+    });
+  </script>
+</body>
+
+</html>

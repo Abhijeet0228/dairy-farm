@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile — Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/customer.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="../public/index.html" class="navbar-brand"><div class="brand-logo"><i class="fas fa-cow"></i></div><div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div></a>
+    <div class="navbar-actions">
+      <button class="cart-btn" onclick="window.location.href='../public/cart.html'"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></button>
+      <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+<div class="customer-layout">
+  <aside class="customer-sidebar">
+    <div class="customer-sidebar-user">
+      <div class="customer-avatar" id="userInitial">U</div>
+      <div class="customer-name" id="userName">Customer</div>
+      <div class="customer-email" id="userEmail">—</div>
+    </div>
+    <a href="dashboard.html" class="customer-nav-link"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="orders.html" class="customer-nav-link"><i class="fas fa-receipt"></i> My Orders</a>
+    <a href="subscription.html" class="customer-nav-link"><i class="fas fa-repeat"></i> Subscription</a>
+    <a href="profile.html" class="customer-nav-link active"><i class="fas fa-user"></i> My Profile</a>
+    <hr style="margin:1rem 0;border:none;border-top:1px solid var(--border-light)">
+    <a href="#" class="customer-nav-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </aside>
+  <main class="customer-main">
+    <h1 style="font-size:1.75rem;margin-bottom:0.25rem">My Profile</h1>
+    <p style="margin-bottom:2rem">Update your personal information and delivery address.</p>
+    <div id="alertBox"></div>
+    <div class="card"><div class="card-body">
+      <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border-light)">
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;font-weight:700" id="profileAvatar">U</div>
+        <div>
+          <div style="font-size:1.25rem;font-weight:700" id="profileName">—</div>
+          <div style="color:var(--text-muted)" id="profileEmail">—</div>
+          <span class="badge badge-success" style="margin-top:0.4rem">Customer</span>
+        </div>
+      </div>
+      <form id="profileForm">
+        <div class="form-section-title" style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--primary);border-bottom:1px solid var(--border-light);padding-bottom:0.5rem;margin-bottom:1.25rem">Personal Information</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="pName" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" id="pPhone" class="form-control"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Email Address</label><input type="email" id="pEmail" class="form-control" readonly style="background:var(--bg);color:var(--text-muted)"><small style="color:var(--text-light)">Email cannot be changed.</small></div>
+        <div class="form-group"><label class="form-label">Delivery Address</label><textarea id="pAddress" class="form-control" rows="3" placeholder="Your full delivery address"></textarea></div>
+        <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+          <button type="button" class="btn btn-ghost" onclick="loadProfile()"><i class="fas fa-undo"></i> Reset</button>
+        </div>
+      </form>
+    </div></div>
+
+    <!-- Invoices section -->
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header"><i class="fas fa-file-invoice" style="color:var(--primary);margin-right:0.5rem"></i>My Bills & Invoices</div>
+      <div id="myInvoices"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireCustomer();
+  const cart = JSON.parse(localStorage.getItem('df_cart') || '[]');
+  document.getElementById('cartCount').textContent = cart.reduce((s,i) => s+i.quantity, 0);
+
+  async function loadProfile() {
+    try {
+      const data = await api.get('/auth/me');
+      const u = data.user;
+      document.getElementById('pName').value = u.name || '';
+      document.getElementById('pPhone').value = u.phone || '';
+      document.getElementById('pEmail').value = u.email || '';
+      document.getElementById('pAddress').value = u.address || '';
+      document.getElementById('userName').textContent = u.name;
+      document.getElementById('userEmail').textContent = u.email;
+      document.getElementById('userInitial').textContent = u.name[0];
+      document.getElementById('profileName').textContent = u.name;
+      document.getElementById('profileEmail').textContent = u.email;
+      document.getElementById('profileAvatar').textContent = u.name[0].toUpperCase();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  async function loadInvoices() {
+    try {
+      const data = await api.get('/billing/my');
+      const invs = data.invoices || [];
+      if (!invs.length) { document.getElementById('myInvoices').innerHTML = '<div class="empty-state" style="padding:2rem"><i class="fas fa-file-invoice"></i><h3>No invoices yet</h3></div>'; return; }
+      document.getElementById('myInvoices').innerHTML = `
+        <div class="table-wrapper"><table><thead><tr><th>Invoice #</th><th>Period</th><th>Amount</th><th>Due Date</th><th>Status</th></tr></thead>
+        <tbody>${invs.map(inv => `<tr>
+          <td><strong style="color:var(--primary)">${inv.invoice_number}</strong></td>
+          <td style="font-size:0.8rem">${Utils.formatDate(inv.period_from)} – ${Utils.formatDate(inv.period_to)}</td>
+          <td><strong>${Utils.formatCurrency(inv.total_amount)}</strong></td>
+          <td style="font-size:0.8rem;color:${inv.status==='overdue'?'#dc2626':'inherit'}">${Utils.formatDate(inv.due_date)}</td>
+          <td>${Utils.statusBadge(inv.status)}</td>
+        </tr>`).join('')}</tbody></table></div>`;
+    } catch(e) { document.getElementById('myInvoices').innerHTML = '<div class="empty-state" style="padding:2rem"><i class="fas fa-file-invoice"></i><h3>No invoices</h3></div>'; }
+  }
+
+  document.getElementById('profileForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+      await api.put('/auth/profile', { name: document.getElementById('pName').value, phone: document.getElementById('pPhone').value, address: document.getElementById('pAddress').value });
+      document.getElementById('alertBox').innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Profile updated successfully!</div>';
+      setTimeout(() => document.getElementById('alertBox').innerHTML = '', 3000);
+      loadProfile();
+    } catch(e) { Toast.error(e.message); }
+  });
+
+  loadProfile();
+  loadInvoices();
+</script>
+</body>
+</html>

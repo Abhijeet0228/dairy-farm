@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milk Records — Admin | Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-cow"></i></div><div class="sidebar-brand">Jadhav<span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <a href="milk-records.html" class="sidebar-link active"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link"><i class="fas fa-truck"></i> Deliveries</a>
+      <a href="billing.html" class="sidebar-link"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-user-avatar" id="adminInitial">A</div><div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">admin</div></div></div></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left"><button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button><div class="topbar-title">Milk Production Records</div></div>
+      <div class="topbar-right"><button class="btn btn-primary btn-sm" onclick="Utils.openModal('milkModal')"><i class="fas fa-plus"></i> Add Record</button></div>
+    </div>
+
+    <div class="admin-content">
+      <!-- Summary Cards -->
+      <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem" id="milkSummary">
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-droplet"></i></div><div><div class="stat-value" id="todayTotal">—</div><div class="stat-label">Today's Total (L)</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-calendar"></i></div><div><div class="stat-value" id="monthTotal">—</div><div class="stat-label">This Month (L)</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-chart-bar"></i></div><div><div class="stat-value" id="avgDaily">—</div><div class="stat-label">7-Day Avg (L/day)</div></div></div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:1.5rem">
+        <div class="chart-card"><div class="chart-card-header"><h3>Weekly Production</h3></div><canvas id="weeklyChart" height="150"></canvas></div>
+        <div class="data-card">
+          <div class="data-card-header"><span class="data-card-title">Filter Records</span></div>
+          <div style="padding:1.25rem;display:grid;gap:0.75rem">
+            <input type="date" class="form-control" id="filterFrom" onchange="loadRecords()">
+            <input type="date" class="form-control" id="filterTo" onchange="loadRecords()">
+            <select class="form-control" id="milkTypeFilter" onchange="loadRecords()">
+              <option value="">All Types</option><option value="cow">Cow</option>
+              <option value="buffalo">Buffalo</option><option value="mixed">Mixed</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filterFrom').value='';document.getElementById('filterTo').value='';document.getElementById('milkTypeFilter').value='';loadRecords()">Clear Filters</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-header"><span class="data-card-title">All Milk Records</span></div>
+        <div id="milkTable"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add/Edit Record Modal -->
+<div class="modal-backdrop" id="milkModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><div class="modal-title" id="milkModalTitle">Add Milk Record</div><button class="modal-close" onclick="Utils.closeModal('milkModal')">&times;</button></div>
+    <form id="milkForm">
+      <input type="hidden" id="milkRecordId">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Date *</label><input type="date" id="mDate" class="form-control" required></div>
+        <div class="form-group"><label class="form-label">Shift</label><select id="mShift" class="form-control"><option value="morning">Morning</option><option value="evening">Evening</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Milk Type *</label><select id="mType" class="form-control" required><option value="cow">Cow</option><option value="buffalo">Buffalo</option><option value="mixed">Mixed</option></select></div>
+        <div class="form-group"><label class="form-label">Quantity (Litres) *</label><input type="number" id="mQty" class="form-control" min="0" step="0.5" required></div>
+      </div>
+      <div class="form-group"><label class="form-label">Fat % (optional)</label><input type="number" id="mFat" class="form-control" min="0" max="10" step="0.1" placeholder="e.g. 3.8"></div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea id="mNotes" class="form-control" rows="2"></textarea></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="Utils.closeModal('milkModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Record</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) { document.getElementById('adminName').textContent = user.name; document.getElementById('adminRole').textContent = user.role; document.getElementById('adminInitial').textContent = user.name[0]; }
+  document.getElementById('mDate').value = new Date().toISOString().slice(0,10);
+  let editMilkId = null;
+
+  async function loadSummary() {
+    try {
+      const data = await api.get('/milk-records/summary');
+      document.getElementById('todayTotal').textContent = `${data.today} L`;
+      document.getElementById('monthTotal').textContent = `${data.month} L`;
+      const weekly = data.weekly || [];
+      const total7 = weekly.reduce((s,r) => s + Number(r.total), 0);
+      const days7 = [...new Set(weekly.map(r => r.record_date))].length || 7;
+      document.getElementById('avgDaily').textContent = `${(total7/days7).toFixed(1)} L`;
+      buildWeeklyChart(weekly);
+    } catch(e) {}
+  }
+
+  function buildWeeklyChart(data) {
+    const dates = [...new Set(data.map(d => d.record_date))];
+    const cow = dates.map(d => data.filter(r => r.record_date === d && r.milk_type === 'cow').reduce((s,r) => s+Number(r.total),0));
+    const buffalo = dates.map(d => data.filter(r => r.record_date === d && r.milk_type === 'buffalo').reduce((s,r) => s+Number(r.total),0));
+    new Chart(document.getElementById('weeklyChart').getContext('2d'), {
+      type: 'bar',
+      data: { labels: dates.map(d => new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short'})),
+        datasets: [
+          {label:'Cow (L)',data:cow,backgroundColor:'rgba(45,106,79,0.75)',borderRadius:6},
+          {label:'Buffalo (L)',data:buffalo,backgroundColor:'rgba(244,162,97,0.75)',borderRadius:6}
+        ]},
+      options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:{x:{grid:{display:false}},y:{beginAtZero:true}}}
+    });
+  }
+
+  async function loadRecords() {
+    const from = document.getElementById('filterFrom').value;
+    const to = document.getElementById('filterTo').value;
+    const type = document.getElementById('milkTypeFilter').value;
+    let url = '/milk-records?';
+    if (from) url += `&date_from=${from}`;
+    if (to) url += `&date_to=${to}`;
+    if (type) url += `&milk_type=${type}`;
+    try {
+      const data = await api.get(url);
+      if (!data.records.length) {
+        document.getElementById('milkTable').innerHTML = '<div class="empty-state" style="padding:2rem"><i class="fas fa-droplet"></i><h3>No records found</h3></div>';
+        return;
+      }
+      const typeBadge = t => ({cow:'badge-success',buffalo:'badge-info',mixed:'badge-warning'})[t]||'badge-secondary';
+      document.getElementById('milkTable').innerHTML = `
+        <div class="table-wrapper"><table><thead><tr><th>Date</th><th>Type</th><th>Shift</th><th>Quantity (L)</th><th>Fat %</th><th>Notes</th><th>Actions</th></tr></thead>
+        <tbody>${data.records.map(r => `<tr>
+          <td><strong>${Utils.formatDate(r.record_date)}</strong></td>
+          <td><span class="badge ${typeBadge(r.milk_type)}">${r.milk_type}</span></td>
+          <td>${r.shift}</td>
+          <td><strong style="color:var(--primary)">${r.quantity_liters} L</strong></td>
+          <td>${r.fat_percentage ? r.fat_percentage+'%' : '—'}</td>
+          <td style="font-size:0.8rem;color:var(--text-muted)">${r.notes||'—'}</td>
+          <td><div style="display:flex;gap:0.4rem">
+            <button class="btn btn-secondary btn-sm" onclick='editMilkRecord(${JSON.stringify(r).replace(/'/g,"\\'")})'><i class="fas fa-edit"></i></button>
+            <button class="btn btn-danger btn-sm" onclick="deleteMilkRecord(${r.id})"><i class="fas fa-trash"></i></button>
+          </div></td>
+        </tr>`).join('')}
+        </tbody></table></div>`;
+    } catch(e) {
+      document.getElementById('milkTable').innerHTML = `<div class="alert alert-warning" style="margin:1rem"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+  }
+
+  function editMilkRecord(r) {
+    editMilkId = r.id;
+    document.getElementById('milkModalTitle').textContent = 'Edit Milk Record';
+    document.getElementById('milkRecordId').value = r.id;
+    document.getElementById('mDate').value = r.record_date;
+    document.getElementById('mShift').value = r.shift;
+    document.getElementById('mType').value = r.milk_type;
+    document.getElementById('mQty').value = r.quantity_liters;
+    document.getElementById('mFat').value = r.fat_percentage || '';
+    document.getElementById('mNotes').value = r.notes || '';
+    Utils.openModal('milkModal');
+  }
+
+  async function deleteMilkRecord(id) {
+    if (!confirm('Delete this milk record?')) return;
+    try { await api.delete(`/milk-records/${id}`); Toast.success('Record deleted.'); loadRecords(); } catch(e) { Toast.error(e.message); }
+  }
+
+  document.getElementById('milkForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = { record_date:document.getElementById('mDate').value, shift:document.getElementById('mShift').value, milk_type:document.getElementById('mType').value, quantity_liters:document.getElementById('mQty').value, fat_percentage:document.getElementById('mFat').value || null, notes:document.getElementById('mNotes').value };
+    try {
+      if (editMilkId) await api.put(`/milk-records/${editMilkId}`, body);
+      else await api.post('/milk-records', body);
+      Utils.closeModal('milkModal');
+      Toast.success('Milk record saved!');
+      loadRecords(); loadSummary();
+      editMilkId = null;
+      document.getElementById('milkModalTitle').textContent = 'Add Milk Record';
+    } catch(e) { Toast.error(e.message); }
+  });
+
+  loadSummary();
+  loadRecords();
+</script>
+</body>
+</html>

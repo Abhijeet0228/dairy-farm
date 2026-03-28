@@ -1,0 +1,72 @@
+/* ============================================================
+   DAIRY FARM — Customer Panel Styles
+   customer.css
+   ============================================================ */
+
+/* ── Customer Layout ─────────────────────────────────────────── */
+.customer-layout { display: flex; min-height: 100vh; background: var(--bg); padding-top: 72px; }
+
+.customer-sidebar {
+  width: 240px; min-height: calc(100vh - 72px); background: white;
+  position: sticky; top: 72px; height: calc(100vh - 72px); overflow-y: auto;
+  border-right: 1px solid var(--border-light); padding: 1.5rem 0.75rem;
+  flex-shrink: 0;
+}
+.customer-sidebar-user { text-align: center; padding: 1rem 0.5rem 1.5rem; border-bottom: 1px solid var(--border-light); margin-bottom: 1rem; }
+.customer-avatar {
+  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 0.75rem;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 700;
+}
+.customer-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+.customer-email { font-size: 0.78rem; color: var(--text-muted); }
+.customer-nav-link {
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-sm); color: var(--text-muted); font-size: 0.875rem;
+  font-weight: 500; margin-bottom: 0.15rem; transition: var(--transition);
+}
+.customer-nav-link i { width: 18px; text-align: center; }
+.customer-nav-link:hover { background: var(--border-light); color: var(--primary); }
+.customer-nav-link.active { background: linear-gradient(135deg, rgba(45,106,79,0.12), rgba(116,198,157,0.1)); color: var(--primary); font-weight: 600; }
+
+.customer-main { flex: 1; padding: 2rem; max-width: 960px; }
+
+/* ── Subscription Card ───────────────────────────────────────── */
+.subscription-card {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  border-radius: var(--radius-lg); padding: 2rem; color: white; margin-bottom: 2rem;
+  position: relative; overflow: hidden;
+}
+.subscription-card::after {
+  content: '🥛'; position: absolute; right: 2rem; top: 50%; transform: translateY(-50%);
+  font-size: 5rem; opacity: 0.15;
+}
+.subscription-badge { background: rgba(255,255,255,0.2); color: white; padding: 0.3rem 0.85rem; border-radius: 50px; font-size: 0.78rem; font-weight: 600; display: inline-block; margin-bottom: 0.75rem; }
+.subscription-card h3 { color: white; font-size: 1.25rem; margin-bottom: 0.5rem; }
+.subscription-card p { color: rgba(255,255,255,0.8); margin-bottom: 1.25rem; }
+.subscription-details { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.sub-detail { text-align: center; }
+.sub-detail-val { font-size: 1.5rem; font-weight: 700; color: white; }
+.sub-detail-label { font-size: 0.72rem; color: rgba(255,255,255,0.65); }
+
+/* ── Order Track ─────────────────────────────────────────────── */
+.order-timeline { display: flex; gap: 0; margin: 1.5rem 0; }
+.timeline-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.timeline-dot {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--border);
+  display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+  color: var(--text-light); position: relative; z-index: 1; transition: var(--transition);
+}
+.timeline-dot.done { background: var(--primary); color: white; }
+.timeline-dot.current { background: var(--accent); color: white; box-shadow: 0 0 0 4px rgba(244,162,97,0.2); }
+.timeline-line { height: 2px; background: var(--border); flex: 1; margin-top: 16px; }
+.timeline-line.done { background: var(--primary); }
+.timeline-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.4rem; text-align: center; }
+
+/* ── Responsive Customer ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .customer-layout { flex-direction: column; }
+  .customer-sidebar { width: 100%; position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border-light); }
+  .customer-main { padding: 1.25rem; }
+  .order-timeline { overflow-x: auto; }
+}

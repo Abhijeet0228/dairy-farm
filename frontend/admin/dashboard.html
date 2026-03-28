@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="fas fa-cow"></i></div>
+      <div class="sidebar-brand">Jadhav<span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="sidebar-link active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <div class="nav-section-label">Farm</div>
+      <a href="milk-records.html" class="sidebar-link"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link"><i class="fas fa-truck"></i> Deliveries</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="billing.html" class="sidebar-link"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Reports</a>
+      <div class="nav-section-label">Account</div>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="adminInitial">A</div>
+        <div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">Admin</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+        <div class="topbar-title">Dashboard Overview</div>
+      </div>
+      <div class="topbar-right">
+        <span style="font-size:0.8rem;color:var(--text-muted)" id="currentDate"></span>
+        <button class="topbar-icon-btn" title="Notifications" id="notifBtn"><i class="fas fa-bell"></i><span class="notif-badge" id="notifBadge" style="display:none"></span></button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <!-- Stat Cards -->
+      <div class="stat-cards" id="statCards">
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-users"></i></div><div><div class="stat-value skeleton" style="width:60px;height:28px;margin-bottom:4px"></div><div class="stat-label">Total Customers</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-box"></i></div><div><div class="stat-value skeleton" style="width:60px;height:28px;margin-bottom:4px"></div><div class="stat-label">Total Products</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-receipt"></i></div><div><div class="stat-value skeleton" style="width:60px;height:28px;margin-bottom:4px"></div><div class="stat-label">Total Orders</div></div></div>
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-indian-rupee-sign"></i></div><div><div class="stat-value skeleton" style="width:80px;height:28px;margin-bottom:4px"></div><div class="stat-label">Today's Sales</div></div></div>
+      </div>
+
+      <!-- Low Stock Alert -->
+      <div id="lowStockAlert" style="display:none" class="low-stock-alert">
+        <i class="fas fa-exclamation-triangle fa-lg"></i>
+        <p><strong>Low Stock Alert:</strong> <span id="lowStockText"></span>. <a href="inventory.html" style="color:var(--primary);font-weight:600">Manage Inventory →</a></p>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-2" style="margin-bottom:2rem">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3>Sales Revenue (30 Days)</h3>
+            <div class="chart-period-btns">
+              <button class="period-btn active" onclick="loadSalesChart('daily')">Daily</button>
+              <button class="period-btn" onclick="loadSalesChart('weekly')">Weekly</button>
+              <button class="period-btn" onclick="loadSalesChart('monthly')">Monthly</button>
+            </div>
+          </div>
+          <canvas id="salesChart" height="120"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><h3>Milk Production (7 Days)</h3></div>
+          <canvas id="milkChart" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Orders + Quick Stats -->
+      <div class="grid grid-2">
+        <div class="data-card">
+          <div class="data-card-header">
+            <span class="data-card-title">Recent Orders</span>
+            <a href="orders.html" class="btn btn-ghost btn-sm">View All <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div id="recentOrdersTable">
+            <div class="loader"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div>
+          <div class="stat-cards" style="grid-template-columns:1fr 1fr;margin-bottom:1.25rem" id="extraStats">
+            <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-truck"></i></div><div><div class="stat-value" id="pendingDeliveries">—</div><div class="stat-label">Pending Deliveries</div></div></div>
+            <div class="stat-card"><div class="stat-icon teal"><i class="fas fa-droplet"></i></div><div><div class="stat-value" id="todayMilk">—</div><div class="stat-label">Today's Milk (L)</div></div></div>
+            <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-clock"></i></div><div><div class="stat-value" id="pendingOrders">—</div><div class="stat-label">Pending Orders</div></div></div>
+            <div class="stat-card"><div class="stat-icon red"><i class="fas fa-indian-rupee-sign"></i></div><div><div class="stat-value" id="monthRevenue">—</div><div class="stat-label">Month Revenue</div></div></div>
+          </div>
+          <div class="data-card">
+            <div class="data-card-header"><span class="data-card-title">Quick Actions</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;padding:1.25rem">
+              <a href="products.html" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Product</a>
+              <a href="customers.html" class="btn btn-secondary btn-sm"><i class="fas fa-user-plus"></i> Add Customer</a>
+              <a href="milk-records.html" class="btn btn-secondary btn-sm"><i class="fas fa-droplet"></i> Milk Record</a>
+              <a href="deliveries.html" class="btn btn-secondary btn-sm"><i class="fas fa-truck"></i> Schedule</a>
+              <a href="billing.html" class="btn btn-secondary btn-sm"><i class="fas fa-file-invoice"></i> Generate Bill</a>
+              <a href="reports.html" class="btn btn-secondary btn-sm"><i class="fas fa-chart-bar"></i> Reports</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) {
+    document.getElementById('adminName').textContent = user.name;
+    document.getElementById('adminRole').textContent = user.role;
+    document.getElementById('adminInitial').textContent = user.name[0].toUpperCase();
+  }
+  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  let salesChartInstance = null, milkChartInstance = null;
+
+  async function loadDashboard() {
+    try {
+      const data = await api.get('/dashboard');
+      const s = data.stats;
+      document.getElementById('statCards').innerHTML = `
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-users"></i></div><div><div class="stat-value">${s.totalCustomers}</div><div class="stat-label">Total Customers</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-box"></i></div><div><div class="stat-value">${s.totalProducts}</div><div class="stat-label">Active Products</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-receipt"></i></div><div><div class="stat-value">${s.totalOrders}</div><div class="stat-label">Total Orders</div></div></div>
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-indian-rupee-sign"></i></div><div><div class="stat-value">${Utils.formatCurrency(s.todaySales)}</div><div class="stat-label">Today's Sales</div></div></div>`;
+
+      document.getElementById('pendingDeliveries').textContent = s.pendingDeliveries;
+      document.getElementById('todayMilk').textContent = `${s.todayMilk} L`;
+      document.getElementById('pendingOrders').textContent = s.pendingOrders;
+      document.getElementById('monthRevenue').textContent = Utils.formatCurrency(s.monthRevenue);
+
+      if (data.lowStock && data.lowStock.length > 0) {
+        document.getElementById('lowStockAlert').style.display = 'flex';
+        document.getElementById('notifBadge').style.display = 'block';
+        document.getElementById('lowStockText').textContent = `${data.lowStock.length} item(s) running low — ${data.lowStock.slice(0,3).map(i => i.product_name || i.item_name).join(', ')}`;
+      }
+
+      // Recent Orders
+      if (data.recentOrders && data.recentOrders.length > 0) {
+        document.getElementById('recentOrdersTable').innerHTML = `
+          <table><thead><tr><th>Order #</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead><tbody>
+          ${data.recentOrders.map(o => `<tr>
+            <td><a href="orders.html" style="color:var(--primary);font-weight:600">${o.order_number}</a></td>
+            <td>${o.customer_name}</td><td>${Utils.formatCurrency(o.total_amount)}</td>
+            <td>${Utils.statusBadge(o.status)}</td>
+          </tr>`).join('')}
+          </tbody></table>`;
+      } else {
+        document.getElementById('recentOrdersTable').innerHTML = '<div class="empty-state" style="padding:2rem"><i class="fas fa-receipt"></i><h3>No orders yet</h3></div>';
+      }
+
+      // Sales Chart
+      buildSalesChart(data.salesChart || []);
+      buildMilkChart(data.milkChart || []);
+    } catch(e) {
+      document.getElementById('statCards').innerHTML = `<div style="grid-column:1/-1"><div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> ${e.message} — Make sure the backend is running.</div></div>`;
+    }
+  }
+
+  function buildSalesChart(salesData) {
+    if (salesChartInstance) salesChartInstance.destroy();
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    salesChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: salesData.map(d => new Date(d.date).toLocaleDateString('en-IN', {day:'numeric',month:'short'})),
+        datasets: [{ label: 'Revenue (₹)', data: salesData.map(d => d.revenue), borderColor: '#2d6a4f', backgroundColor: 'rgba(45,106,79,0.08)', borderWidth: 2.5, fill: true, tension: 0.4, pointBackgroundColor: '#2d6a4f', pointRadius: 4 }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '₹'+Number(v).toLocaleString('en-IN') } }, x: { grid: { display: false } } } }
+    });
+  }
+
+  function buildMilkChart(milkData) {
+    if (milkChartInstance) milkChartInstance.destroy();
+    const dates = [...new Set(milkData.map(d => d.date))];
+    const cow = dates.map(d => milkData.filter(r => r.date === d && r.milk_type === 'cow').reduce((s,r) => s + Number(r.liters), 0));
+    const buffalo = dates.map(d => milkData.filter(r => r.date === d && r.milk_type === 'buffalo').reduce((s,r) => s + Number(r.liters), 0));
+    const ctx = document.getElementById('milkChart').getContext('2d');
+    milkChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: dates.map(d => new Date(d).toLocaleDateString('en-IN', {day:'numeric',month:'short'})),
+        datasets: [
+          { label: 'Cow Milk (L)', data: cow, backgroundColor: 'rgba(45,106,79,0.7)', borderRadius: 6 },
+          { label: 'Buffalo Milk (L)', data: buffalo, backgroundColor: 'rgba(244,162,97,0.7)', borderRadius: 6 }
+        ]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }
+    });
+  }
+
+  async function loadSalesChart(period) {
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    const data = await api.get(`/reports/sales?period=${period}`);
+    buildSalesChart(data.sales || []);
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>

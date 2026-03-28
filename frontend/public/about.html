@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — Jadhav Dairy Farm</title>
+  <meta name="description"
+    content="Learn about Jadhav Dairy Farm — 15 years of delivering pure, farm-fresh dairy products across Sangli.">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    .about-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+      padding: 7rem 0 5rem;
+      margin-top: 72px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .about-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .about-hero h1 {
+      color: white;
+    }
+
+    .about-hero p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.1rem;
+    }
+
+    .milestone {
+      text-align: center;
+      padding: 1.5rem;
+    }
+
+    .milestone-num {
+      font-family: var(--font-heading);
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .milestone-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .team-card {
+      text-align: center;
+      padding: 2rem 1.5rem;
+    }
+
+    .team-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 auto 1rem;
+    }
+
+    .value-item {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+      padding: 1.5rem;
+      background: white;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+    }
+
+    .value-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(45, 106, 79, 0.1), rgba(116, 198, 157, 0.15));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <div class="brand-logo"><i class="fas fa-cow"></i></div>
+        <div><span class="brand-name">Jadhav</span><span class="brand-tagline">Dairy Farm</span></div>
+      </a>
+      <div class="navbar-nav" id="navMenu">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="about.html" class="nav-link active">About</a>
+        <a href="products.html" class="nav-link">Products</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+      </div>
+      <div class="navbar-actions">
+        <button class="cart-btn" onclick="window.location.href='cart.html'"><i class="fas fa-shopping-cart"></i><span
+            class="cart-count">0</span></button>
+        <a href="login.html" class="btn btn-secondary btn-sm">Login</a>
+        <a href="register.html" class="btn btn-primary btn-sm">Sign Up</a>
+        <button class="hamburger"
+          onclick="document.getElementById('navMenu').classList.toggle('open')"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="about-hero">
+    <div class="container" style="position:relative;z-index:1">
+      <div style="max-width:640px">
+        <div class="hero-badge" style="margin-bottom:1.25rem"><i class="fas fa-leaf"></i> Sangli, Maharashtra
+        </div>
+        <h1 style="margin-bottom:1.25rem">Our Story of Pure,<br>Farm-Fresh Goodness</h1>
+        <p>For over 15 years,Jadhav Dairy has been nourishing families across Sangli with the finest milk, ghee, paneer,
+          and dairy products — straight from our farm, with love.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MILESTONES -->
+  <section class="section">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem">
+        <div class="milestone">
+          <div class="milestone-num">15+</div>
+          <div class="milestone-label">Years in Business</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">500+</div>
+          <div class="milestone-label">Happy Families</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">50+</div>
+          <div class="milestone-label">Healthy Cows & Buffaloes</div>
+        </div>
+        <div class="milestone">
+          <div class="milestone-num">365</div>
+          <div class="milestone-label">Days Delivery Per Year</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OUR STORY -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="grid grid-2" style="gap:4rem;align-items:center">
+        <div>
+          <span class="section-label">Our Journey</span>
+          <h2 style="margin-bottom:1.25rem">From a Small Farm to Sangli's Trusted Dairy</h2>
+          <p style="margin-bottom:1rem;line-height:1.9">It all began in 2009 when Amol Jadhav, a third-generation
+            farmer, decided to modernise his family farm and bring hygienic, traceable dairy products directly to urban
+            households. What started with just 8 cows and a bicycle delivery route has grown into a full-scale dairy
+            operation serving 500+ families.</p>
+          <p style="margin-bottom:1rem;line-height:1.9">Today, Jadhav operates a clean, FSSAI-certified dairy unit where
+            every litre of milk is tested for quality before packaging. Our animals are grass-fed, ethically raised, and
+            never given artificial hormones.</p>
+          <p style="line-height:1.9">We believe that the best dairy comes from healthy, happy animals and honest farming
+            practices. That philosophy hasn't changed since day one — and it never will.</p>
+        </div>
+        <div>
+          <div
+            style="background:linear-gradient(135deg,var(--cream),var(--border-light));border-radius:var(--radius-xl);padding:3rem;text-align:center;font-size:6rem;border:1px solid var(--border-light)">
+            🐄🌿</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.25rem">
+            <div
+              style="background:white;border-radius:var(--radius-md);padding:1.25rem;text-align:center;border:1px solid var(--border-light)">
+              <div style="font-size:1.5rem;margin-bottom:0.5rem">✅</div>
+              <div style="font-weight:700;font-size:0.9rem">FSSAI Certified</div>
+            </div>
+            <div
+              style="background:white;border-radius:var(--radius-md);padding:1.25rem;text-align:center;border:1px solid var(--border-light)">
+              <div style="font-size:1.5rem;margin-bottom:0.5rem">🌱</div>
+              <div style="font-weight:700;font-size:0.9rem">No Hormones</div>
+            </div>
+            <div
+              style="background:white;border-radius:var(--radius-md);padding:1.25rem;text-align:center;border:1px solid var(--border-light)">
+              <div style="font-size:1.5rem;margin-bottom:0.5rem">🧪</div>
+              <div style="font-weight:700;font-size:0.9rem">Quality Tested</div>
+            </div>
+            <div
+              style="background:white;border-radius:var(--radius-md);padding:1.25rem;text-align:center;border:1px solid var(--border-light)">
+              <div style="font-size:1.5rem;margin-bottom:0.5rem">❤️</div>
+              <div style="font-weight:700;font-size:0.9rem">Ethically Raised</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUES -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header"><span class="section-label">Our Values</span>
+        <h2>What We Stand For</h2>
+        <p>Every decision we make at Jadhav is guided by these core principles.</p>
+      </div>
+      <div class="grid grid-2" style="gap:1.25rem">
+        <div class="value-item">
+          <div class="value-icon"><i class="fas fa-leaf"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.4rem">Purity First</h4>
+            <p style="font-size:0.875rem">No artificial additives, preservatives, or colours. Our products are as close
+              to nature as possible.</p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon"><i class="fas fa-heart"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.4rem">Animal Welfare</h4>
+            <p style="font-size:0.875rem">Our cows and buffaloes live in spacious, clean sheds and graze on open
+              pastures. Happy animals give better milk.</p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon"><i class="fas fa-handshake"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.4rem">Fair Practices</h4>
+            <p style="font-size:0.875rem">We pay fair wages to our staff and maintain transparent pricing for our
+              customers. No hidden costs.</p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon"><i class="fas fa-recycle"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.4rem">Sustainability</h4>
+            <p style="font-size:0.875rem">Biodegradable packaging, water recycling, and solar-powered operations — we
+              care about the planet.</p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon"><i class="fas fa-shield-halved"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.4rem">Quality Assurance</h4>
+            <p style="font-size:0.875rem">Every batch is tested for fat content, purity, and hygiene before it leaves
+              our facility. Zero compromise.</p>
+          </div>
+        </div>
+        <div class="value-item">
+          <div class="value-icon"><i class="fas fa-users"></i></div>
+          <div>
+            <h4 style="margin-bottom:0.4rem">Community First</h4>
+            <p style="font-size:0.875rem">We support local farmers, employ from the community, and contribute 2% of
+              profits to rural education.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header"><span class="section-label">Our Team</span>
+        <h2>The People Behind the Farm</h2>
+      </div>
+      <div class="grid grid-4">
+        <div class="card team-card">
+          <div class="team-avatar">A</div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.25rem"> Amol Jadha</h3>
+          <div style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-bottom:0.5rem">Founder & Owner</div>
+          <p style="font-size:0.8rem">Third-generation farmer with 25+ years of experience in dairy farming and animal
+            husbandry.</p>
+        </div>
+        <div class="card team-card">
+          <div class="team-avatar">S</div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.25rem">Shubangi Jadhav</h3>
+          <div style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-bottom:0.5rem">Operations Manager
+          </div>
+          <p style="font-size:0.8rem">Oversees daily farm operations, quality control, and customer relations with
+            meticulous care.</p>
+        </div>
+        <div class="card team-card">
+          <div class="team-avatar">A</div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.25rem">Amit Jadhav</h3>
+          <div style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-bottom:0.5rem">Head of Production
+          </div>
+          <p style="font-size:0.8rem">Expert in dairy processing, manages the ghee, paneer, and curd production unit.
+          </p>
+        </div>
+        <div class="card team-card">
+          <div class="team-avatar">J</div>
+          <h3 style="font-size:1.1rem;margin-bottom:0.25rem">Jayshree Jadhav</h3>
+          <div style="font-size:0.8rem;color:var(--primary);font-weight:600;margin-bottom:0.5rem">Customer Experience
+          </div>
+          <p style="font-size:0.8rem">Dedicated to ensuring every customer receives the best service and timely
+            deliveries.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background:linear-gradient(135deg,var(--cream),var(--cream-dark));padding:5rem 0;text-align:center">
+    <div class="container" style="max-width:640px">
+      <span class="section-label">Join Our Family</span>
+      <h2 style="margin:0.75rem 0 1rem">Ready to Taste the Jadhav Difference?</h2>
+      <p style="font-size:1.05rem;margin-bottom:2rem">Sign up today and get your first month of fresh dairy delivered to
+        your door. No commitment required.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <a href="products.html" class="btn btn-primary btn-lg"><i class="fas fa-shopping-bag"></i> Shop Now</a>
+        <a href="contact.html" class="btn btn-secondary btn-lg">Contact Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="grid grid-4">
+        <div>
+          <div class="footer-brand"><span class="brand-name">Jadhav Dairy</span></div>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.55)">Farm-fresh dairy since 2009.</p>
+        </div>
+        <div>
+          <h4>Links</h4>
+          <div class="footer-links"><a href="index.html">Home</a><a href="about.html">About</a><a
+              href="products.html">Products</a><a href="contact.html">Contact</a></div>
+        </div>
+        <div>
+          <h4>Products</h4>
+          <div class="footer-links"><a href="products.html?cat=1">Cow Milk</a><a href="products.html?cat=4">Ghee</a><a
+              href="products.html?cat=6">Paneer</a><a href="products.html?cat=3">Curd</a></div>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.6)"><i class="fas fa-phone"
+              style="color:var(--secondary);margin-right:0.5rem"></i>+91 98765 43210</p>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.6);margin-top:0.5rem"><i class="fas fa-envelope"
+              style="color:var(--secondary);margin-right:0.5rem"></i>info@J.com</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Jadhav Dairy Farm. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory — Admin | Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-cow"></i></div><div class="sidebar-brand">Jadhav<span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <a href="milk-records.html" class="sidebar-link"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link active"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link"><i class="fas fa-truck"></i> Deliveries</a>
+      <a href="billing.html" class="sidebar-link"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-user-avatar" id="adminInitial">A</div><div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">admin</div></div></div></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left"><button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button><div class="topbar-title">Inventory Management</div></div>
+    </div>
+    <div class="admin-content">
+      <div id="lowStockBanner" style="display:none" class="low-stock-alert"><i class="fas fa-exclamation-triangle fa-lg"></i><p id="lowStockMsg"></p></div>
+
+      <div class="data-card">
+        <div class="data-card-header">
+          <span class="data-card-title">Stock Levels</span>
+          <div class="data-card-actions">
+            <span style="display:flex;align-items:center;gap:0.5rem;font-size:0.8rem"><span style="width:10px;height:10px;background:#dc2626;border-radius:50%;display:inline-block"></span>Low Stock (≤10)</span>
+          </div>
+        </div>
+        <div id="inventoryTable"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Update Stock Modal -->
+<div class="modal-backdrop" id="stockModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title">Update Stock</div><button class="modal-close" onclick="Utils.closeModal('stockModal')">&times;</button></div>
+    <input type="hidden" id="stockItemId"><input type="hidden" id="stockProductId">
+    <div class="form-group"><label class="form-label">Product</label><input type="text" id="stockItemName" class="form-control" readonly></div>
+    <div class="form-group"><label class="form-label">New Quantity *</label><input type="number" id="stockQty" class="form-control" min="0" step="0.5" required></div>
+    <div class="form-group"><label class="form-label">Notes</label><input type="text" id="stockNotes" class="form-control" placeholder="Reason for update..."></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Utils.closeModal('stockModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStock()"><i class="fas fa-save"></i> Update</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) { document.getElementById('adminName').textContent = user.name; document.getElementById('adminRole').textContent = user.role; document.getElementById('adminInitial').textContent = user.name[0]; }
+
+  async function loadInventory() {
+    try {
+      const data = await api.get('/inventory');
+      const items = data.inventory;
+      const low = data.lowStock;
+      if (low && low.length > 0) {
+        document.getElementById('lowStockBanner').style.display = 'flex';
+        document.getElementById('lowStockMsg').innerHTML = `<strong>${low.length} item(s) need restocking:</strong> ${low.map(i => `<strong>${i.product_name||i.item_name}</strong> (${i.quantity} ${i.unit})`).join(', ')}`;
+      }
+      const emojis = {1:'🥛',2:'🍶',3:'🥣',4:'🧈',5:'🥐',6:'🧀',7:'🥤',8:'🍦'};
+      document.getElementById('inventoryTable').innerHTML = `
+        <div class="table-wrapper"><table><thead><tr><th>Product</th><th>Category</th><th>Current Stock</th><th>Unit</th><th>Bar</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${items.map(item => {
+          const pct = Math.min(100, (item.quantity / 200) * 100);
+          const isLow = item.quantity <= 10;
+          return `<tr style="${isLow ? 'background:#fff9f9' : ''}">
+            <td><div style="display:flex;align-items:center;gap:0.5rem">
+              ${isLow ? '<i class="fas fa-exclamation-triangle" style="color:#dc2626;font-size:0.8rem"></i>' : ''}
+              <strong style="font-size:0.875rem">${item.product_name||item.item_name||'—'}</strong>
+            </div></td>
+            <td style="font-size:0.8rem;color:var(--text-muted)">${item.category_name||'—'}</td>
+            <td><strong style="font-size:1.1rem;color:${isLow?'#dc2626':'var(--primary)'}">${item.quantity}</strong></td>
+            <td style="font-size:0.875rem">${item.unit}</td>
+            <td style="min-width:100px"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${isLow?'#dc2626':''}"></div></div></td>
+            <td>${isLow ? '<span class="badge badge-danger"><i class="fas fa-exclamation-triangle"></i> Low</span>' : '<span class="badge badge-success">OK</span>'}</td>
+            <td><button class="btn btn-secondary btn-sm" onclick="openStockModal(${item.id},${item.product_id||'null'},'${(item.product_name||item.item_name||'').replace(/'/g,"\\'")}',${item.quantity})"><i class="fas fa-edit"></i> Update</button></td>
+          </tr>`;
+        }).join('')}</tbody></table></div>`;
+    } catch(e) {
+      document.getElementById('inventoryTable').innerHTML = `<div class="alert alert-warning" style="margin:1rem"><i class="fas fa-exclamation-triangle"></i> ${e.message}</div>`;
+    }
+  }
+
+  function openStockModal(id, productId, name, qty) {
+    document.getElementById('stockItemId').value = id;
+    document.getElementById('stockProductId').value = productId || '';
+    document.getElementById('stockItemName').value = name;
+    document.getElementById('stockQty').value = qty;
+    document.getElementById('stockNotes').value = '';
+    Utils.openModal('stockModal');
+  }
+
+  async function saveStock() {
+    const id = document.getElementById('stockItemId').value;
+    const qty = document.getElementById('stockQty').value;
+    const notes = document.getElementById('stockNotes').value;
+    const productId = document.getElementById('stockProductId').value;
+    try {
+      await api.put(`/inventory/${id}`, { quantity: qty, notes, product_id: productId });
+      Utils.closeModal('stockModal');
+      Toast.success('Stock updated!');
+      loadInventory();
+    } catch(e) { Toast.error(e.message); }
+  }
+
+  loadInventory();
+</script>
+</body>
+</html>

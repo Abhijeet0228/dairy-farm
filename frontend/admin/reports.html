@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — Admin | Jadhav Dairy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header"><div class="sidebar-logo"><i class="fas fa-cow"></i></div><div class="sidebar-brand">Jadhav<span>Admin Panel</span></div></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="sidebar-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a href="products.html" class="sidebar-link"><i class="fas fa-box"></i> Products</a>
+      <a href="orders.html" class="sidebar-link"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="customers.html" class="sidebar-link"><i class="fas fa-users"></i> Customers</a>
+      <a href="milk-records.html" class="sidebar-link"><i class="fas fa-droplet"></i> Milk Records</a>
+      <a href="inventory.html" class="sidebar-link"><i class="fas fa-warehouse"></i> Inventory</a>
+      <a href="deliveries.html" class="sidebar-link"><i class="fas fa-truck"></i> Deliveries</a>
+      <a href="billing.html" class="sidebar-link"><i class="fas fa-file-invoice"></i> Billing</a>
+      <a href="reports.html" class="sidebar-link active"><i class="fas fa-chart-line"></i> Reports</a>
+      <a href="../public/index.html" class="sidebar-link"><i class="fas fa-globe"></i> View Website</a>
+      <a href="#" class="sidebar-link" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-user"><div class="sidebar-user-avatar" id="adminInitial">A</div><div><div class="sidebar-user-name" id="adminName">Admin</div><div class="sidebar-user-role" id="adminRole">admin</div></div></div></div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-left"><button class="sidebar-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button><div class="topbar-title">Sales Reports</div></div>
+      <div class="topbar-right">
+        <input type="date" class="form-control" id="rptFrom" style="width:150px" onchange="loadAllReports()">
+        <input type="date" class="form-control" id="rptTo" style="width:150px" onchange="loadAllReports()">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+      <!-- Summary Cards -->
+      <div class="stat-cards" id="reportStats">
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-chart-line"></i></div><div><div class="stat-value skeleton" style="width:80px;height:28px"></div><div class="stat-label">Total Revenue</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-receipt"></i></div><div><div class="stat-value skeleton" style="width:60px;height:28px"></div><div class="stat-label">Total Orders</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-box"></i></div><div><div class="stat-value skeleton" style="width:60px;height:28px"></div><div class="stat-label">Products Active</div></div></div>
+        <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-users"></i></div><div><div class="stat-value skeleton" style="width:60px;height:28px"></div><div class="stat-label">Customers</div></div></div>
+      </div>
+
+      <!-- Sales Chart -->
+      <div class="chart-card" style="margin-bottom:1.75rem">
+        <div class="chart-card-header">
+          <h3>Sales Revenue</h3>
+          <div class="chart-period-btns">
+            <button class="period-btn active" onclick="changePeriod('daily', this)">Daily</button>
+            <button class="period-btn" onclick="changePeriod('weekly', this)">Weekly</button>
+            <button class="period-btn" onclick="changePeriod('monthly', this)">Monthly</button>
+          </div>
+        </div>
+        <canvas id="salesChart" height="100"></canvas>
+      </div>
+
+      <div class="grid grid-2">
+        <!-- Product-wise Sales -->
+        <div class="data-card">
+          <div class="data-card-header"><span class="data-card-title">Top Products by Revenue</span></div>
+          <div id="productReport"><div class="loader"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Customer-wise Sales -->
+        <div class="data-card">
+          <div class="data-card-header"><span class="data-card-title">Top Customers by Spend</span></div>
+          <div id="customerReport"><div class="loader"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  const user = Auth.requireAdmin();
+  if (user) { document.getElementById('adminName').textContent = user.name; document.getElementById('adminRole').textContent = user.role; document.getElementById('adminInitial').textContent = user.name[0]; }
+
+  // Default date range: last 30 days
+  const today = new Date().toISOString().slice(0,10);
+  const d30ago = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
+  document.getElementById('rptFrom').value = d30ago;
+  document.getElementById('rptTo').value = today;
+
+  let salesChartInstance = null, currentPeriod = 'daily';
+
+  function getDateRange() {
+    return { from: document.getElementById('rptFrom').value, to: document.getElementById('rptTo').value };
+  }
+
+  async function loadAllReports() {
+    await Promise.all([loadSummaryStats(), loadSalesChart(), loadProductReport(), loadCustomerReport()]);
+  }
+
+  async function loadSummaryStats() {
+    try {
+      const data = await api.get('/reports/summary');
+      const s = data.summary;
+      document.getElementById('reportStats').innerHTML = `
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-chart-line"></i></div><div><div class="stat-value">${Utils.formatCurrency(s.monthRevenue)}</div><div class="stat-label">Month Revenue</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-receipt"></i></div><div><div class="stat-value">${s.totalOrders}</div><div class="stat-label">Total Orders</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-box"></i></div><div><div class="stat-value">${s.totalProducts}</div><div class="stat-label">Active Products</div></div></div>
+        <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-users"></i></div><div><div class="stat-value">${s.totalCustomers}</div><div class="stat-label">Customers</div></div></div>`;
+    } catch(e) {}
+  }
+
+  async function loadSalesChart() {
+    const { from, to } = getDateRange();
+    try {
+      const data = await api.get(`/reports/sales?period=${currentPeriod}&date_from=${from}&date_to=${to}`);
+      if (salesChartInstance) salesChartInstance.destroy();
+      const ctx = document.getElementById('salesChart').getContext('2d');
+      salesChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: (data.sales||[]).map(d => new Date(d.date).toLocaleDateString('en-IN', {day:'numeric',month:'short'})),
+          datasets: [
+            { label: 'Revenue (₹)', data: (data.sales||[]).map(d => d.revenue), borderColor: '#2d6a4f', backgroundColor: 'rgba(45,106,79,0.07)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#2d6a4f' },
+            { label: 'Orders', data: (data.sales||[]).map(d => d.total_orders), borderColor: '#f4a261', backgroundColor: 'transparent', tension: 0.4, borderWidth: 2, yAxisID: 'y1' }
+          ]
+        },
+        options: { responsive: true, interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+          scales: { y: { beginAtZero: true, ticks: { callback: v => '₹'+Number(v).toLocaleString('en-IN') } }, y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }, x: { grid: { display: false } } }
+        }
+      });
+    } catch(e) {}
+  }
+
+  async function loadProductReport() {
+    const { from, to } = getDateRange();
+    try {
+      const data = await api.get(`/reports/products?date_from=${from}&date_to=${to}`);
+      const products = data.products || [];
+      if (!products.length) { document.getElementById('productReport').innerHTML = '<div class="empty-state" style="padding:2rem"><i class="fas fa-box-open"></i><h3>No data</h3></div>'; return; }
+      document.getElementById('productReport').innerHTML = `
+        <table><thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+        <tbody>${products.slice(0,10).map((p,i) => `<tr>
+          <td><div style="display:flex;align-items:center;gap:0.5rem"><span style="width:22px;height:22px;background:var(--primary);color:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700">${i+1}</span>${p.product_name}<span style="font-size:0.75rem;color:var(--text-muted)">(${p.category})</span></div></td>
+          <td>${p.units_sold}</td>
+          <td><strong>${Utils.formatCurrency(p.revenue)}</strong></td>
+        </tr>`).join('')}</tbody></table>`;
+    } catch(e) { document.getElementById('productReport').innerHTML = `<div class="alert alert-warning" style="margin:1rem">${e.message}</div>`; }
+  }
+
+  async function loadCustomerReport() {
+    const { from, to } = getDateRange();
+    try {
+      const data = await api.get(`/reports/customers?date_from=${from}&date_to=${to}`);
+      const customers = data.customers || [];
+      if (!customers.length) { document.getElementById('customerReport').innerHTML = '<div class="empty-state" style="padding:2rem"><i class="fas fa-users"></i><h3>No data</h3></div>'; return; }
+      document.getElementById('customerReport').innerHTML = `
+        <table><thead><tr><th>Customer</th><th>Orders</th><th>Total Spend</th></tr></thead>
+        <tbody>${customers.slice(0,10).map((c,i) => `<tr>
+          <td><div style="display:flex;align-items:center;gap:0.5rem"><span style="width:22px;height:22px;background:var(--accent);color:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700">${i+1}</span><div><div style="font-size:0.875rem;font-weight:600">${c.customer_name}</div><div style="font-size:0.75rem;color:var(--text-muted)">${c.email}</div></div></div></td>
+          <td>${c.total_orders}</td>
+          <td><strong>${Utils.formatCurrency(c.total_spent)}</strong></td>
+        </tr>`).join('')}</tbody></table>`;
+    } catch(e) { document.getElementById('customerReport').innerHTML = `<div class="alert alert-warning" style="margin:1rem">${e.message}</div>`; }
+  }
+
+  function changePeriod(period, btn) {
+    currentPeriod = period;
+    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadSalesChart();
+  }
+
+  loadAllReports();
+</script>
+</body>
+</html>
