@@ -6,18 +6,26 @@ require('dotenv').config();
 
 const app = express();
 
+console.log('--- Server Starting ---');
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded images statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+console.log('--- Setting up Static Folders ---');
+// Use absolute paths from the root for maximum reliability
+const frontendPath = path.resolve(__dirname, '..', 'frontend');
+const publicPath = path.resolve(__dirname, '..', 'frontend', 'public');
+const uploadsPath = path.resolve(__dirname, 'uploads');
 
-// Serve frontend statically
-app.use(express.static(path.join(__dirname, '../frontend')));
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+console.log('Serving Frontend from:', frontendPath);
+console.log('Serving Public from:', publicPath);
 
+app.use('/uploads', express.static(uploadsPath));
+app.use(express.static(publicPath));
+app.use(express.static(frontendPath));
+
+console.log('--- Loading API Routes ---');
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth',          require('./routes/auth'));
 app.use('/api/products',      require('./routes/products'));
@@ -33,19 +41,27 @@ app.use('/api/reports',       require('./routes/reports'));
 app.use('/api/reviews',       require('./routes/reviews'));
 app.use('/api/dashboard',     require('./routes/dashboard'));
 
-// ─── Catch-all: serve frontend pages ─────────────────────────────────────────
+console.log('--- Setting up Fallback Routing ---');
+// ─── Catch-all: serve frontend index for SPA-like navigation ────────────────────
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
+  // Only serve index for non-API requests
+  if (req.url.startsWith('/api')) {
+    return res.status(404).json({ success: false, message: 'API Route not found' });
+  }
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 // ─── Error Handler ───────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('SERVER ERROR:', err.stack);
   res.status(500).json({ success: false, message: 'Internal server error', error: err.message });
 });
 
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
+console.log(`--- Initializing Port ${PORT} ---`);
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Dairy Farm Server running on port ${PORT}`);
+  console.log(`🚀 Dairy Farm Server successfully listening on port ${PORT}`);
+  console.log(`🌐 Public URL check: http://0.0.0.0:${PORT}`);
 });
