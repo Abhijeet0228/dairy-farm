@@ -1,0 +1,9 @@
+{
+  "name": "dairy-farm-auto-deploy",
+  "version": "1.0.0",
+  "description": "Root package.json to trigger correct deployment on Railway/Render",
+  "scripts": {
+    "install": "cd backend && npm install",
+    "start": "cd backend && npm start"
+  }
+}
