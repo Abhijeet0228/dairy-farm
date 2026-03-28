@@ -16,6 +16,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Serve frontend statically
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.join(__dirname, '../frontend/public')));
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth',          require('./routes/auth'));
